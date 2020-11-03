@@ -1,0 +1,15 @@
+#+TITLE: Go HTTP Server
+
+#+begin_quote
+A HTTP server for sharing a local folder
+#+end_quote
+
+* Features
+- Serve a plain folder to the web
+- Vue.js history mode (rewrite all requests to index.html, except assets)
+- Dynamic HTML templating
+
+* License
+Copyright 2020 Safe Surfer.
+This project is licensed under the [[http://www.gnu.org/licenses/agpl-3.0.html][AGPL-3.0]] and is [[https://www.gnu.org/philosophy/free-sw.en.html][Free Software]].
+This program comes with absolutely no warranty.
