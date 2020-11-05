@@ -1,0 +1,17 @@
+{{- if .Values.headerMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "go-http-server.fullname" . }}-headermap
+  labels:
+    app: io.safesurfer.go-http-server
+    {{- include "go-http-server.labels" . | nindent 4 }}
+{{- if .Values.labels }}
+{{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- end }}
+data:
+  "headers.yaml": |
+    {{- toYaml .Values.headerMap | nindent 4 }}
+{{- end }}

@@ -42,6 +42,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+          {{- if .Values.headerMap }}
+            - name: APP_HEADER_SET_ENABLE
+              value: "true"
+            - name: APP_HEADER_MAP_PATH
+              value: {{ .Values.headerMapPath }}
+          {{- end }}
           {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -49,6 +55,11 @@ spec:
           {{- if .Values.templateMap }}
           - name: templatemap
             mountPath: {{ .Values.templateMapPath }}
+          {{- end }}
+          {{- if .Values.headerMap }}
+          - name: headermap
+            mountPath: {{ .Values.headerMapPath }}
+            subPath: "headers.yaml"
           {{- end }}
           {{- if .Values.extraVolumeMounts }}
             {{ toYaml .Values.extraVolumeMounts | trim | nindent 12 }}
@@ -82,6 +93,11 @@ spec:
         - name: templatemap
           configMap:
             name: {{ include "go-http-server.fullname" . }}-templatemap
+      {{- end }}
+      {{- if .Values.headerMap }}
+        - name: headermap
+          configMap:
+            name: {{ include "go-http-server.fullname" . }}-headermap
       {{- end }}
       {{- if .Values.extraVolumes }}
         {{ toYaml .Values.extraVolumes | trim | nindent 8 }}
