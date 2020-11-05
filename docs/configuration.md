@@ -78,6 +78,8 @@ These headers will be added to the response. Headers configured this way can als
 | templateMap                                   | The template map of fields and environment variables to template in `$APP_SERVE_FOLER/index.html` | `{}`                                            |
 | templateMapPath                               | The path to a template map                                                                        | `/app/map.yaml`                                 |
 | vuejsHistoryMode                              | Enable Vuejs history mode path rewriting                                                          | `true`                                          |
+| headerMap                                     | Custom headers to set on response                                                                 | `{}`                                            |
+| headerMapPath                                 | The path to a header map                                                                          | `/app/headers.yaml`                             |
 | labels                                        | Extra labels to add to all managed resources                                                      | `{}`                                            |
 | extraEnv                                      | Declare extra environment variables                                                               |                                                 |
 | image.repository                              | The repo where the image lives                                                                    | `registry.gitlab.com/safesurfer/go-http-server` |
