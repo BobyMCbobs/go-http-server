@@ -82,7 +82,7 @@ func GetVuejsHistoryMode() (output string) {
 	return GetEnvOrDefault("APP_VUEJS_HISTORY_MODE", "false")
 }
 
-// GetHeaderSetEnabled ...
+// GetHeaderSetEnable ...
 // return if headers should be templated
 func GetHeaderSetEnable() (output string) {
 	return GetEnvOrDefault("APP_HEADER_SET_ENABLE", "false")
