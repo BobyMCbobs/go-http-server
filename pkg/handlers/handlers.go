@@ -19,6 +19,16 @@ func serveHandlerVuejsHistoryMode(publicDir string) http.Handler {
 		panic(err)
 	}
 
+	headerMap := map[string][]string{}
+	err = nil
+	if common.GetHeaderSetEnable() == "true" {
+		tplHeaderMapPath := common.GetHeaderMapPath()
+		headerMap, err = common.LoadHeaderMapConfig(tplHeaderMapPath)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// static files
 		if strings.Contains(req.URL.Path, ".") {
@@ -34,6 +44,9 @@ func serveHandlerVuejsHistoryMode(publicDir string) http.Handler {
 			return
 		}
 		htmlTemplateOptions := common.EvaluateEnvFromMap(configMap)
+		if common.GetHeaderSetEnable() == "true" {
+			w = common.WriteHeadersToResponse(w, headerMap)
+		}
 		if err := tmpl.Execute(w, htmlTemplateOptions); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -45,7 +58,20 @@ func serveHandlerVuejsHistoryMode(publicDir string) http.Handler {
 func serveHandlerStandard(publicDir string) http.Handler {
 	handler := http.FileServer(http.Dir(publicDir))
 
+	headerMap := map[string][]string{}
+	var err error = nil
+	if common.GetHeaderSetEnable() == "true" {
+		tplHeaderMapPath := common.GetHeaderMapPath()
+		headerMap, err = common.LoadHeaderMapConfig(tplHeaderMapPath)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if common.GetHeaderSetEnable() == "true" {
+			w = common.WriteHeadersToResponse(w, headerMap)
+		}
 		handler.ServeHTTP(w, req)
 	})
 }

@@ -82,6 +82,18 @@ func GetVuejsHistoryMode() (output string) {
 	return GetEnvOrDefault("APP_VUEJS_HISTORY_MODE", "false")
 }
 
+// GetHeaderSetEnabled ...
+// return if headers should be templated
+func GetHeaderSetEnable() (output string) {
+	return GetEnvOrDefault("APP_HEADER_SET_ENABLE", "false")
+}
+
+// GetHeaderMapPath ...
+// return the path of the header map
+func GetHeaderMapPath() (output string) {
+	return GetEnvOrDefault("APP_HEADER_MAP_PATH", "./headers.yaml")
+}
+
 // GetEnvOrDefault ...
 // given an env var return it's value, else return a default
 func GetEnvOrDefault(envName string, defaultValue string) (output string) {
@@ -111,6 +123,40 @@ func LoadMapConfig(path string) (output map[string]string, err error) {
 	}
 	err = yaml.Unmarshal(mapBytes, &output)
 	return output, err
+}
+
+// EvaluateEnvFromHeaderMap ...
+// evaluates environment variables from map[string]string{}
+func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]string) {
+	output = map[string][]string{}
+	for key, value := range input {
+		for indexSub, valueSub := range value {
+			output[key][indexSub] = os.ExpandEnv(valueSub)
+		}
+	}
+	return output
+}
+
+// LoadHeaderMapConfig ...
+// loads map config as YAML
+func LoadHeaderMapConfig(path string) (output map[string][]string, err error) {
+	mapBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
+	}
+	err = yaml.Unmarshal(mapBytes, &output)
+	return output, err
+}
+
+// WriteHeadersToResponse ...
+// overwrites the headers in the response
+func WriteHeadersToResponse(w http.ResponseWriter, headerMap map[string][]string) http.ResponseWriter {
+	for key, value := range headerMap {
+		for _, valueSub := range value {
+			w.Header().Set(key, valueSub)
+		}
+	}
+	return w
 }
 
 // GetRequestIP ...

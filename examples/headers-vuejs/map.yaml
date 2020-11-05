@@ -1,0 +1,3 @@
+description: "${APP_DESCRIPTION}"
+message: "whatever"
+testValue: "${APP_MY_HOST}"
