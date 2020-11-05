@@ -21,6 +21,7 @@ theme:
 
 nav:
   - Welcome: index.md
-  - Development: development.md
   - Configuration: configuration.md
   - Deployment: deployment.md
+  - Development: development.md
+  - Contributing: contributing.md
