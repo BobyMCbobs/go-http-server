@@ -6,7 +6,25 @@ Packaging your site with safesurfer/go-http-server
 
 * Container build
 
+** Simple
 #+begin_src dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
-COPY dist /app/site
+env APP_SERVE_FOLDER=./site
+COPY site /app/site
+#+end_src
+
+** Vuejs
+#+begin_src dockerfile
+FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+env APP_VUEJS_HISTORY_MODE=true
+COPY dist /app/dist
+#+end_src
+
+** Vuejs + template map
+  #+begin_src dockerfile
+FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+env APP_VUEJS_HISTORY_MODE=true \
+  APP_TEMPLATE_MAP_PATH=/app/map.yaml \
+COPY dist /app/dist
+COPY templatemap.yaml /app/map.yaml
 #+end_src
