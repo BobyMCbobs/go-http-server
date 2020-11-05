@@ -10,7 +10,7 @@ A HTTP server for sharing a local folder
 - Dynamic HTML templating
 
 * Documentation
-Docs are located in the [[./docs/][docs]] folder, as well as [[https://safesurfer.gitlab.com/go-http-server][on GitLab pages]].
+Docs are located in the [[./docs/][docs]] folder, as well as [[https://safesurfer.gitlab.io/go-http-server][on GitLab pages]].
 
 * License
 Copyright 2020 Safe Surfer.
