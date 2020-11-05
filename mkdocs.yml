@@ -1,0 +1,26 @@
+site_name: Go-HTTP-Server
+strict: true
+repo_name: "safesurfer/go-http-server"
+repo_url: https://gitlab.com/safesurfer/go-http-server
+site_url: https://safesurfer.gitlab.io/go-http-server
+
+markdown_extensions:
+  - codehilite
+  - meta
+  - toc:
+      permalink: " ¶"
+
+theme:
+  name: material
+  features:
+    - tabs
+    - instant
+  palette:
+    primary: "blue"
+    accent: "green"
+
+nav:
+  - Welcome: index.md
+  - Development: development.md
+  - Configuration: configuration.md
+  - Deployment: deployment.md
