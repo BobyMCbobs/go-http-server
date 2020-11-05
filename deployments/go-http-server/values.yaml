@@ -2,10 +2,15 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+serveFolder: /app/site
+templateMap: {}
+templateMapPath: /app/map.yaml
+vuejsHistoryMode: false
+
 replicaCount: 1
 
 image:
-  repository: registry.gitlab.com/safesurfer/go-http/server
+  repository: registry.gitlab.com/safesurfer/go-http-server
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -13,6 +18,9 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+labels: {}
+extraEnv: []
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -81,3 +89,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+extraVolumes: []
+  # - name: app-site
+  #   persistentVolumeClaim:
+  #     claimName: pv0001
+
+extraVolumeMounts: []
+  # - name: site
+  #   mountPath: /app/site

@@ -5,6 +5,11 @@ metadata:
   labels:
     app: io.safesurfer.go-http-server
     {{- include "go-http-server.labels" . | nindent 4 }}
+{{- if .Values.labels }}
+{{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- end }}
 spec:
 {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -36,17 +41,27 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.templateMap }}
+          - name: templatemap
+            mountPath: {{ .Values.templateMapPath }}
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+            {{ toYaml .Values.extraVolumeMounts | trim | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.serivce.port }}
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: http
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -62,3 +77,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+      {{- if .Values.templateMap }}
+        - name: templatemap
+          configMap:
+            name: {{ include "go-http-server.fullname" . }}-templatemap
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+        {{ toYaml .Values.extraVolumes | trim | nindent 8 }}
+      {{ end }}
