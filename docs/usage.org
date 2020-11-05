@@ -1,0 +1,12 @@
+#+TITLE: Usage
+
+#+begin_quote
+Packaging your site with safesurfer/go-http-server
+#+end_quote
+
+* Container build
+
+#+begin_src dockerfile
+FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+COPY dist /app/site
+#+end_src

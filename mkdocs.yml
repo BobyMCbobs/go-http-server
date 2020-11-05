@@ -24,4 +24,5 @@ nav:
   - Configuration: configuration.md
   - Deployment: deployment.md
   - Development: development.md
+  - Usage: usage.md
   - Contributing: contributing.md
