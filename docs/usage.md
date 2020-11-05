@@ -13,7 +13,6 @@
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
-env APP_SERVE_FOLDER=./site
 COPY site /app/site
 ```
 
@@ -21,8 +20,7 @@ COPY site /app/site
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
-env APP_SERVE_FOLDER=./site \
-  APP_HEADER_SET_ENABLE=true \
+env APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
 COPY site /app/site
 COPY headers.yaml /app/headers.yaml
@@ -40,7 +38,8 @@ COPY dist /app/dist
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
-env APP_VUEJS_HISTORY_MODE=true \
+env APP_SERVE_FOLDER=./dist \
+  APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml
 COPY dist /app/dist
 COPY templatemap.yaml /app/map.yaml
@@ -50,7 +49,8 @@ COPY templatemap.yaml /app/map.yaml
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
-env APP_VUEJS_HISTORY_MODE=true \
+env APP_SERVE_FOLDER=./dist \
+  APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml \
   APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
