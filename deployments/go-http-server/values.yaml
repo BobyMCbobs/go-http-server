@@ -63,6 +63,7 @@ service:
 ingress:
   enabled: false
   annotations: {}
+  realIPHeader: ""
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:

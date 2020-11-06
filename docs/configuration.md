@@ -14,6 +14,7 @@
 | `APP_PORT`                | The port to serve traffic on                                  | `:8080`          |
 | `APP_METRICS_ENABLED`     | Enable binding of a metrics port                              | `true`           |
 | `APP_PORT_METRICS`        | The port to bind for metrics traffic                          | `:2112`          |
+| `APP_HTTP_REAL_IP_HEADER` | The HTTP header to use for real IPs                           | `""`             |
 | `APP_SERVE_FOLDER`        | The local folder path to serve                                | `./site`         |
 | `APP_TEMPLATE_MAP_PATH`   | The path to a template map                                    | `./map.yaml`     |
 | `APP_VUEJS_HISTORY_MODE`  | Enable Vuejs history mode path rewriting                      | `false`          |

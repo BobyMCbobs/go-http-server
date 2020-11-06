@@ -42,6 +42,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+          {{- if .Values.ingress.realIPHeader }}
+            - name: APP_HTTP_REAL_IP_HEADER
+              value: {{ .Values.ingress.realIPHeader }}
+          {{- end }}
           {{- if .Values.headerMap }}
             - name: APP_HEADER_SET_ENABLE
               value: "true"
