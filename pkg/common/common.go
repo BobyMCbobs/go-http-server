@@ -6,10 +6,11 @@ package common
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
-	"log"
-	"io/ioutil"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -126,12 +127,12 @@ func LoadMapConfig(path string) (output map[string]string, err error) {
 }
 
 // EvaluateEnvFromHeaderMap ...
-// evaluates environment variables from map[string]string{}
+// evaluates environment variables from map[string][]string
 func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]string) {
 	output = map[string][]string{}
 	for key, value := range input {
-		for indexSub, valueSub := range value {
-			output[key][indexSub] = os.ExpandEnv(valueSub)
+		for _, valueSub := range value {
+			output[key] = append(output[key], os.ExpandEnv(valueSub))
 		}
 	}
 	return output

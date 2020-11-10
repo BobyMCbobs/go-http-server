@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
 	"gitlab.com/safesurfer/go-http-server/pkg/common"
 )
 
@@ -27,6 +28,7 @@ func serveHandlerVuejsHistoryMode(publicDir string) http.Handler {
 		if err != nil {
 			panic(err)
 		}
+		headerMap = common.EvaluateEnvFromHeaderMap(headerMap)
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -66,6 +68,7 @@ func serveHandlerStandard(publicDir string) http.Handler {
 		if err != nil {
 			panic(err)
 		}
+		headerMap = common.EvaluateEnvFromHeaderMap(headerMap)
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
