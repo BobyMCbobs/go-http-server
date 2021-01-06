@@ -47,6 +47,18 @@ func GetAppPort() (output string) {
 	return GetEnvOrDefault("APP_PORT", ":8080")
 }
 
+// GetAppHTTPSPort ...
+// The port to serve HTTPS traffic on, if enabled.
+func GetAppHTTPSPort() (output string) {
+	return GetEnvOrDefault("APP_HTTPS_PORT", ":8443")
+}
+
+// GetAppEnableHTTPS ...
+// Whether to enable serving HTTPS.
+func GetAppEnableHTTPS() (output string) {
+	return GetEnvOrDefault("APP_ENABLE_HTTPS", "false")
+}
+
 // GetAppMetricsPort ...
 // return the port which the app should serve metrics on
 func GetAppMetricsPort() (output string) {

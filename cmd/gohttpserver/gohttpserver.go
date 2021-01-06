@@ -1,13 +1,16 @@
 package gohttpserver
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 
 	"gitlab.com/safesurfer/go-http-server/pkg/common"
 	"gitlab.com/safesurfer/go-http-server/pkg/handlers"
@@ -18,6 +21,7 @@ import (
 // manages app initialisation
 func HandleWebserver() {
 	// bring up the API
+	forever := make(chan bool)
 
 	envFile := common.GetAppEnvFile()
 	_ = godotenv.Load(envFile)
@@ -38,12 +42,49 @@ func HandleWebserver() {
 		AllowCredentials: true,
 	})
 
+	// Serve regular HTTP
 	srv := &http.Server{
 		Handler:      c.Handler(router),
 		Addr:         port,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("Listening on", port)
-	log.Fatal(srv.ListenAndServe())
+	go func() {
+		log.Println("Listening on", port)
+		log.Fatal(srv.ListenAndServe())
+	}()
+
+	// Optionally, serve HTTPS
+	useTLS, err := strconv.ParseBool(common.GetAppEnableHTTPS())
+	if err != nil {
+		log.Panicf("[fatal] Error parsing APP_ENABLE_HTTPS: %v\n", err)
+	}
+	if useTLS {
+		// Load certs
+		tlsConfig := &tls.Config{}
+		tlsConfig.Certificates = make([]tls.Certificate, 1)
+		tlsConfig.Certificates[0], err = tls.LoadX509KeyPair(os.Getenv("APP_HTTPS_CRT_PATH"), os.Getenv("APP_HTTPS_KEY_PATH"))
+		if err != nil {
+			log.Panicf("[fatal] Error loading certs: %v\n", err)
+		}
+		tlsConfig.BuildNameToCertificate()
+		// Create TLS listener and server
+		tlsPort := common.GetAppHTTPSPort()
+		srvTLS := &http.Server{
+			Handler:      c.Handler(router),
+			Addr:         tlsPort,
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+			TLSConfig:    tlsConfig,
+		}
+		listener, err := tls.Listen("tcp", tlsPort, tlsConfig)
+		if err != nil {
+			log.Panicf("[fatal] Error creating TLS listener: %v\n", err)
+		}
+		go func() {
+			log.Println("Listening on", tlsPort)
+			log.Println(srvTLS.Serve(listener))
+		}()
+	}
+	<-forever
 }
