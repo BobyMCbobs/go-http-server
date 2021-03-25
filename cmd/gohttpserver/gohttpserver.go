@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"path/filepath"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -29,6 +30,8 @@ func HandleWebserver() {
 	router.Use(common.Logging)
 
 	serveFolder := common.GetServeFolder()
+	fullServePath, _ := filepath.Abs(serveFolder)
+	log.Printf("Serving folder '%v'\n", fullServePath)
 	router.PathPrefix("/").Handler(handlers.ServeHandler(serveFolder))
 
 	c := cors.New(cors.Options{

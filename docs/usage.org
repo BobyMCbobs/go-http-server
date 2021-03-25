@@ -50,3 +50,12 @@ COPY dist /app/dist
 COPY headers.yaml /app/headers.yaml
 COPY templatemap.yaml /app/map.yaml
 #+end_src
+
+* An instant HTTP server
+
+A webserver, serving on port 8080, can be brought up instantly to share files.
+
+#+BEGIN_SRC bash
+go get -u gitlab.com/safesurfer/go-http-server
+go-http-server
+#+END_SRC
