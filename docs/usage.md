@@ -1,22 +1,32 @@
-- [Container build](#sec-1)
-  - [Simple](#sec-1-1)
-  - [Simple + headers](#sec-1-2)
-  - [Vuejs](#sec-1-3)
-  - [Vuejs + template map](#sec-1-4)
-  - [Vuejs + template map + headers](#sec-1-5)
+- [Container build](#org002cf11)
+  - [Simple](#orgef5aa61)
+  - [Simple + headers](#org55ea3d0)
+  - [Vuejs](#org9c32e8c)
+  - [Vuejs + template map](#org304b41c)
+  - [Vuejs + template map + headers](#org0dacdb6)
+- [An instant HTTP server](#org6f656df)
 
 > Packaging your site with safesurfer/go-http-server
 
-# Container build<a id="sec-1"></a>
 
-## Simple<a id="sec-1-1"></a>
+<a id="org002cf11"></a>
+
+# Container build
+
+
+<a id="orgef5aa61"></a>
+
+## Simple
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
 COPY site /app/site
 ```
 
-## Simple + headers<a id="sec-1-2"></a>
+
+<a id="org55ea3d0"></a>
+
+## Simple + headers
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
@@ -26,7 +36,10 @@ COPY site /app/site
 COPY headers.yaml /app/headers.yaml
 ```
 
-## Vuejs<a id="sec-1-3"></a>
+
+<a id="org9c32e8c"></a>
+
+## Vuejs
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
@@ -34,7 +47,10 @@ env APP_VUEJS_HISTORY_MODE=true
 COPY dist /app/dist
 ```
 
-## Vuejs + template map<a id="sec-1-4"></a>
+
+<a id="org304b41c"></a>
+
+## Vuejs + template map
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
@@ -45,7 +61,10 @@ COPY dist /app/dist
 COPY templatemap.yaml /app/map.yaml
 ```
 
-## Vuejs + template map + headers<a id="sec-1-5"></a>
+
+<a id="org0dacdb6"></a>
+
+## Vuejs + template map + headers
 
 ```dockerfile
 FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
@@ -57,4 +76,16 @@ env APP_SERVE_FOLDER=./dist \
 COPY dist /app/dist
 COPY headers.yaml /app/headers.yaml
 COPY templatemap.yaml /app/map.yaml
+```
+
+
+<a id="org6f656df"></a>
+
+# An instant HTTP server
+
+A webserver, serving on port 8080, can be brought up instantly to share files.
+
+```bash
+go get -u gitlab.com/safesurfer/go-http-server
+go-http-server
 ```
