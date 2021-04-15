@@ -50,14 +50,12 @@ variables:
     --build-arg APP_BUILD_HASH="$COMMIT_HASH" \
     --build-arg APP_BUILD_MODE="$APP_BUILD_MODE"
 
-build-container-amd64:
+.build-container: &build-container
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug-v1.3.0
     entrypoint: [""]
   retry: 2
-  variables:
-    ARCH: "amd64"
   before_script:
     - *kaniko-build-pre-script
     - *kaniko-build-taggable-name
@@ -65,23 +63,18 @@ build-container-amd64:
   script:
     - *kaniko-build
 
+build-container-amd64:
+  <<: *build-container
+  variables:
+    ARCH: "amd64"
+
 build-container-arm64:
-  stage: build
-  retry: 2
-  image:
-    name: gcr.io/kaniko-project/executor:debug-v1.0.0
-    entrypoint: [""]
+  <<: *build-container
   variables:
     ARCH: "arm64"
   only:
     - tags
     - master
-  before_script:
-    - *kaniko-build-pre-script
-    - *kaniko-build-taggable-name
-    - *kaniko-pre-build-release-version
-  script:
-    - *kaniko-build
 
 spell_check:
   stage: lint
