@@ -19,7 +19,7 @@
 ## Simple
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+FROM registry.gitlab.com/safesurfer/go-http-server:1.2.0
 COPY site /app/site
 ```
 
@@ -29,7 +29,7 @@ COPY site /app/site
 ## Simple + headers
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+FROM registry.gitlab.com/safesurfer/go-http-server:1.2.0
 env APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
 COPY site /app/site
@@ -42,7 +42,7 @@ COPY headers.yaml /app/headers.yaml
 ## Vuejs
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+FROM registry.gitlab.com/safesurfer/go-http-server:1.2.0
 env APP_VUEJS_HISTORY_MODE=true
 COPY dist /app/dist
 ```
@@ -53,7 +53,7 @@ COPY dist /app/dist
 ## Vuejs + template map
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+FROM registry.gitlab.com/safesurfer/go-http-server:1.2.0
 env APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml
@@ -67,7 +67,7 @@ COPY templatemap.yaml /app/map.yaml
 ## Vuejs + template map + headers
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.0.0
+FROM registry.gitlab.com/safesurfer/go-http-server:1.2.0
 env APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml \
