@@ -1,6 +1,7 @@
 stages:
   - lint
   - build
+  - post-build
   - pages
 
 variables:
