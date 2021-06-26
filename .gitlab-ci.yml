@@ -9,6 +9,7 @@ variables:
   ARCHES: amd64 arm64
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
+  REGISTRIES: "$CI_REGISTRY"
 
 .kaniko-build-pre-script: &kaniko-build-pre-script |
   set -x
