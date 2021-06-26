@@ -35,6 +35,8 @@ spec:
       serviceAccountName: {{ include "go-http-server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -48,24 +50,35 @@ spec:
             - name: APP_HTTP_REAL_IP_HEADER
               value: {{ .Values.ingress.realIPHeader }}
           {{- end }}
+          {{- if .Values.templateMap }}
+            - name: APP_TEMPLATE_SET_ENABLE
+              value: "true"
+            - name: APP_TEMPLATE_MAP_PATH
+              value: {{ .Values.templateMapPath }}
+          {{- end }}
           {{- if .Values.headerMap }}
             - name: APP_HEADER_SET_ENABLE
               value: "true"
             - name: APP_HEADER_MAP_PATH
               value: {{ .Values.headerMapPath }}
           {{- end }}
+          {{- if .Values.vuejsHistoryMode }}
+            - name: APP_VUEJS_HISTORY_MODE
+              value: "true"
+          {{- end }}
           {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
           {{- if .Values.templateMap }}
-          - name: templatemap
-            mountPath: {{ .Values.templateMapPath }}
+            - name: templatemap
+              mountPath: {{ .Values.templateMapPath }}
+              subPath: "template.yaml"
           {{- end }}
           {{- if .Values.headerMap }}
-          - name: headermap
-            mountPath: {{ .Values.headerMapPath }}
-            subPath: "headers.yaml"
+            - name: headermap
+              mountPath: {{ .Values.headerMapPath }}
+              subPath: "headers.yaml"
           {{- end }}
           {{- if .Values.extraVolumeMounts }}
             {{ toYaml .Values.extraVolumeMounts | trim | nindent 12 }}

@@ -6,14 +6,14 @@ serveFolder: /app/site
 templateMap: {}
 # description: "${APP_DESCRIPTION}"
 # title: go-http-server
-templateMapPath: /app/map.yaml
+templateMapPath: /app/template/template.yaml
 vuejsHistoryMode: false
 headerMap: {}
 # Referrer-Policy:
 #   - strict-origin
 # X-Content-Type-Options:
 #   - "${APP_CONTENT_TYPE_OPTIONS}"
-headerMapPath: /app/headers.yaml
+headerMapPath: /app/headers/headers.yaml
 
 replicaCount: 1
 
@@ -107,3 +107,5 @@ extraVolumes: []
 extraVolumeMounts: []
   # - name: site
   #   mountPath: /app/site
+
+initContainers: []

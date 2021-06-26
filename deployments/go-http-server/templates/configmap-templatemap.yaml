@@ -12,5 +12,6 @@ metadata:
 {{- end }}
 {{- end }}
 data:
-  {{- toYaml .Values.templateMap | nindent 2 }}
+  "template.yaml": |
+    {{- toYaml .Values.templateMap | nindent 4 }}
 {{- end }}
