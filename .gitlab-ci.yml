@@ -80,7 +80,6 @@ tag-container-image:
   script:
     - |
         set -x
-        export $(cat $CI_PROJECT_DIR/.env | xargs)
         cp -rf /kaniko/.docker $HOME/.docker
         if [[ -z "$CI_COMMIT_TAG" ]]; then
           APP_BUILD_VERSION=
