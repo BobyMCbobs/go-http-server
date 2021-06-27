@@ -88,6 +88,7 @@ tag-container-image:
   before_script:
     - *kaniko-build-pre-script
     - *kaniko-build-taggable-name
+    - *kaniko-pre-build-release-version
   script:
     - |
         set -x
