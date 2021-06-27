@@ -14,7 +14,16 @@ variables:
 .kaniko-build-pre-script: &kaniko-build-pre-script |
   set -x
   mkdir -p /kaniko/.docker
-  echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+  cat << EOF > /kaniko/.docker/config.json
+  {
+    "auths": {
+      "$CI_REGISTRY": {
+        "username": "$CI_REGISTRY_USER",
+        "password": "$CI_REGISTRY_PASSWORD"
+      }
+    }
+  }
+  EOF
 
 .kaniko-build-taggable-name: &kaniko-build-taggable-name |
   set -x
@@ -28,6 +37,7 @@ variables:
     BRANCH_NAME="-$CI_COMMIT_BRANCH"
   fi
   ARCH_TAGGABLE_NAME="$(echo $ARCH | tr -d '/')"
+  PROJECT_PATH=$(echo $CI_PROJECT_PATH | tr '[:upper:]' '[:lower:]')
 
 .kaniko-pre-build-release-version: &kaniko-pre-build-release-version |
   if [[ ! -z "$CI_COMMIT_TAG" ]]; then
