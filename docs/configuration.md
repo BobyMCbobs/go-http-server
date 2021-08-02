@@ -20,6 +20,7 @@
 | `APP_VUEJS_HISTORY_MODE`  | Enable Vuejs history mode path rewriting                      | `false`          |
 | `APP_HEADER_SET_ENABLE`   | Enable header setting for requests                            | `false`          |
 | `APP_HEADER_MAP_PATH`     | The path to the header map                                    | `./headers.yaml` |
+| ` APP_HANDLE_GZIP `       | Whether to compress responses with GZIP where appropriate.    | ` false `        |
 | `APP_ENABLE_HTTPS`        | Whether to enable serving HTTPS on a separate port.           | `false`          |
 | `APP_HTTPS_PORT`          | The port to bind for HTTPS traffic if enabled.                | `:8443`          |
 | `APP_HTTPS_CRT_PATH`      | Path to the public cert file if HTTPS is enabled.             | `""`             |

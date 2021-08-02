@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/NYTimes/gziphandler"
 	"gitlab.com/safesurfer/go-http-server/pkg/common"
 )
 
@@ -81,9 +82,14 @@ func serveHandlerStandard(publicDir string) http.Handler {
 
 // ServeHandler ...
 // serves a folder
-func ServeHandler(publicDir string) http.Handler {
+func ServeHandler(publicDir string) (handler http.Handler) {
 	if common.GetVuejsHistoryMode() == "true" {
-		return serveHandlerVuejsHistoryMode(publicDir)
+		handler = serveHandlerVuejsHistoryMode(publicDir)
+	} else {
+		handler = serveHandlerStandard(publicDir)
 	}
-	return serveHandlerStandard(publicDir)
+	if common.GetEnableGZIP() {
+		handler = gziphandler.GzipHandler(handler)
+	}
+	return handler
 }

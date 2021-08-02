@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -94,6 +95,14 @@ func GetTemplateMapPath() (output string) {
 // return if to use Vuejs history mode
 func GetVuejsHistoryMode() (output string) {
 	return GetEnvOrDefault("APP_VUEJS_HISTORY_MODE", "false")
+}
+
+// GetEnableGZIP ...
+// Return whether we should handle GZIP.
+func GetEnableGZIP() (enable bool) {
+	val := GetEnvOrDefault("APP_HANDLE_GZIP", "false")
+	enable, _ = strconv.ParseBool(val)
+	return enable
 }
 
 // GetHeaderSetEnable ...
