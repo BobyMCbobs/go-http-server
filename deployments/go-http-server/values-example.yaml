@@ -24,6 +24,20 @@ initContainers:
       - -c
       - echo "<html><body><h1>{{ .title }}</h1><p>{{ .body }}</p></body></html>" > /app/site/index.html
 
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  realIPHeader: X-Real-Ip
+  hosts:
+    - host: chart-example.local
+      paths:
+        - /
+  tls:
+    - hosts:
+        - chart-example.local
+      secretName: letsencrypt-prod
+
 extraVolumes:
   - name: app-site
     emptyDir: {}
