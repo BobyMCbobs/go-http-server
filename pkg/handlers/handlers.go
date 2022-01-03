@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"os"
 
 	"github.com/NYTimes/gziphandler"
 	"gitlab.com/safesurfer/go-http-server/pkg/common"
@@ -75,6 +76,10 @@ func serveHandlerStandard(publicDir string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if common.GetHeaderSetEnable() == "true" {
 			w = common.WriteHeadersToResponse(w, headerMap)
+		}
+		if _, err := os.Stat(path.Join(common.GetServeFolder(), req.URL.Path)); err != nil {
+			req.URL.Path = common.Get404PageFileName()
+			req.RequestURI = req.URL.Path
 		}
 		handler.ServeHTTP(w, req)
 	})
