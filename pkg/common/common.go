@@ -117,6 +117,12 @@ func GetHeaderMapPath() (output string) {
 	return GetEnvOrDefault("APP_HEADER_MAP_PATH", "./headers.yaml")
 }
 
+// Get404PageFileName ...
+// return the name of the file to serve for 404 for standard directory serving
+func Get404PageFileName() (output string) {
+	return GetEnvOrDefault("APP_404_PAGE_FILE_NAME", "404.html")
+}
+
 // GetEnvOrDefault ...
 // given an env var return it's value, else return a default
 func GetEnvOrDefault(envName string, defaultValue string) (output string) {
