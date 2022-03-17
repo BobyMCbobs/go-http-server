@@ -1,10 +1,13 @@
-- [Environment variables](#sec-1)
-- [Templating](#sec-2)
-- [Environment variables](#sec-3)
-- [Helm configuration](#sec-4)
+- [Environment variables](#org4361cdb)
+- [Templating](#org1b1cc68)
+- [Environment variables](#org1446e67)
+- [Helm configuration](#org22355f9)
 
 
-# Environment variables<a id="sec-1"></a>
+
+<a id="org4361cdb"></a>
+
+# Environment variables
 
 | Variable                  | Description                                                   | Default          |
 |------------------------- |------------------------------------------------------------- |---------------- |
@@ -20,13 +23,11 @@
 | `APP_VUEJS_HISTORY_MODE`  | Enable Vuejs history mode path rewriting                      | `false`          |
 | `APP_HEADER_SET_ENABLE`   | Enable header setting for requests                            | `false`          |
 | `APP_HEADER_MAP_PATH`     | The path to the header map                                    | `./headers.yaml` |
-| ` APP_HANDLE_GZIP `       | Whether to compress responses with GZIP where appropriate.    | ` false `        |
-| `APP_ENABLE_HTTPS`        | Whether to enable serving HTTPS on a separate port.           | `false`          |
-| `APP_HTTPS_PORT`          | The port to bind for HTTPS traffic if enabled.                | `:8443`          |
-| `APP_HTTPS_CRT_PATH`      | Path to the public cert file if HTTPS is enabled.             | `""`             |
-| `APP_HTTPS_KEY_PATH`      | Path to the private key file if HTTPS is enabled.             | `""`             |
 
-# Templating<a id="sec-2"></a>
+
+<a id="org1b1cc68"></a>
+
+# Templating
 
 When Vuejs history mode is enabled, the `index.html` doc is able to be templated. This is useful for meta tags in HTML.
 
@@ -63,20 +64,26 @@ Will render:
 </html>
 ```
 
-# Environment variables<a id="sec-3"></a>
+
+<a id="org1446e67"></a>
+
+# Environment variables
 
 Just like template map, environment variables can be highly dynamically set.
 
 ```yaml
-Referrer-Policy:
-  - strict-origin
-X-Content-Type-Options:
-  - "${APP_CONTENT_TYPE_OPTIONS}"
+  Referrer-Policy:
+    - strict-origin
+  X-Content-Type-Options:
+    - "${APP_CONTENT_TYPE_OPTIONS}"
 ```
 
 These headers will be added to the response. Headers configured this way can also be evaluated from environment variables.
 
-# Helm configuration<a id="sec-4"></a>
+
+<a id="org22355f9"></a>
+
+# Helm configuration
 
 | Parameter                                     | Description                                                                                       | Default                                         |
 |--------------------------------------------- |------------------------------------------------------------------------------------------------- |----------------------------------------------- |
@@ -99,7 +106,7 @@ These headers will be added to the response. Headers configured this way can als
 | podAnnotations                                | Annotations to assign Pods                                                                        | `{}`                                            |
 | podSecurityContext                            | Set a security context for the Pod                                                                | `{}`                                            |
 | securityContext.readOnlyRootFilesystem        | Mount container filesytem as read only                                                            | `true`                                          |
-| securityContext.runAsNonRoot                  | Don't allow the container in the Pod to run as root                                               | `true`                                          |
+| securityContext.runAsNonRoot                  | Don&rsquo;t allow the container in the Pod to run as root                                         | `true`                                          |
 | securityContext.runAsUser                     | The user ID to run the container in the Pod as                                                    | `1000`                                          |
 | securityContext.runAsGroup                    | The group ID to run the container in the Pod as                                                   | `1000`                                          |
 | service.type                                  | The service type to create                                                                        | `ClusterIP`                                     |

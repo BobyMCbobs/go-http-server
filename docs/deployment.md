@@ -1,13 +1,19 @@
-- [Helm](#sec-1)
-  - [Preliminary steps](#sec-1-1)
-  - [Installation](#sec-1-2)
-  - [Upgrading versions](#sec-1-3)
-  - [Uninstalling](#sec-1-4)
+- [Helm](#org78ac655)
+  - [Preliminary steps](#org28a66c3)
+  - [Installation](#org9920be8)
+  - [Upgrading versions](#org118a603)
+  - [Uninstalling](#orgbb26cf8)
 
 
-# Helm<a id="sec-1"></a>
 
-## Preliminary steps<a id="sec-1-1"></a>
+<a id="org78ac655"></a>
+
+# Helm
+
+
+<a id="org28a66c3"></a>
+
+## Preliminary steps
 
 Create a namespace:
 
@@ -15,7 +21,10 @@ Create a namespace:
 kubectl create ns go-http-server
 ```
 
-## Installation<a id="sec-1-2"></a>
+
+<a id="org9920be8"></a>
+
+## Installation
 
 Install with Helm:
 
@@ -27,7 +36,10 @@ deployments/go-http-server
 
 Note: to configure, please check out [the configuration docs](./configuration.md)
 
-## Upgrading versions<a id="sec-1-3"></a>
+
+<a id="org118a603"></a>
+
+## Upgrading versions
 
 Upgrade a release with Helm:
 
@@ -37,7 +49,10 @@ helm upgrade go-http-server-dev \
 deployments/go-http-server
 ```
 
-## Uninstalling<a id="sec-1-4"></a>
+
+<a id="orgbb26cf8"></a>
+
+## Uninstalling
 
 Uninstall with Helm:
 
