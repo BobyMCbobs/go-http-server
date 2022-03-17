@@ -16,7 +16,7 @@ import (
 )
 
 // AppBuild metadata
-const (
+var (
 	AppName         = "go-http-server"
 	AppBuildVersion = "0.0.0"
 	AppBuildHash    = "???"
