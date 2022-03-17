@@ -66,6 +66,11 @@ func NewWebServer() *WebServer {
 	}
 }
 
+func (w *WebServer) SetServeFolder(path string) *WebServer {
+	w.ServeFolder = path
+	return w
+}
+
 func (w *WebServer) LoadTLS() *WebServer {
 	w.TLSConfig = &tls.Config{}
 	w.TLSConfig.Certificates = make([]tls.Certificate, 1)

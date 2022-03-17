@@ -75,9 +75,9 @@ import (
 )
 
 func main() {
-  ws := ghs.NewWebServer()
-  ws.ServeFolder = common.GetEnvOrDefault("KO_DATA_PATH", "./")
-  ws.Listen()
+  ghs.NewWebServer().
+    SetServeFolder(common.GetEnvOrDefault("KO_DATA_PATH", "./")).
+    Listen()
 }
 ```
 
