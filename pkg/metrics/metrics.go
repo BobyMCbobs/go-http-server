@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// Metrics configures the metrics handler
 type Metrics struct {
 	Enabled bool
 	Port    string

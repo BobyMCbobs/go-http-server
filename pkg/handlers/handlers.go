@@ -12,6 +12,7 @@ import (
 	"gitlab.com/safesurfer/go-http-server/pkg/common"
 )
 
+// Handler holds the information needed to create handlers
 type Handler struct {
 	Error404FilePath   string
 	HeaderMap          map[string][]string

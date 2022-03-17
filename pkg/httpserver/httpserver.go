@@ -16,6 +16,7 @@ import (
 	"gitlab.com/safesurfer/go-http-server/pkg/metrics"
 )
 
+// WebServer configures the runtime
 type WebServer struct {
 	AppPort            string
 	EnvFile            string
@@ -41,6 +42,7 @@ type WebServer struct {
 	Handler            *handlers.Handler
 }
 
+// NewWebServer returns a default WebServer, as per environment configuration
 func NewWebServer() *WebServer {
 	return &WebServer{
 		AppPort:            common.GetAppPort(),
@@ -66,11 +68,13 @@ func NewWebServer() *WebServer {
 	}
 }
 
+// SetServeFolder sets the path to the ServeFolder
 func (w *WebServer) SetServeFolder(path string) *WebServer {
 	w.ServeFolder = path
 	return w
 }
 
+// LoadTLS loads in the TLS certs
 func (w *WebServer) LoadTLS() *WebServer {
 	w.TLSConfig = &tls.Config{}
 	w.TLSConfig.Certificates = make([]tls.Certificate, 1)
@@ -83,6 +87,7 @@ func (w *WebServer) LoadTLS() *WebServer {
 	return w
 }
 
+// LoadTemplateMap loads the template map from the path
 func (w *WebServer) LoadTemplateMap() *WebServer {
 	if w.VueJSHistoryMode != true {
 		return w
@@ -95,6 +100,7 @@ func (w *WebServer) LoadTemplateMap() *WebServer {
 	return w
 }
 
+// LoadHeaderMap loads the header map from the path
 func (w *WebServer) LoadHeaderMap() *WebServer {
 	if w.HeaderMapEnabled == false {
 		return w
@@ -108,6 +114,7 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 	return w
 }
 
+// NewHandlerForWebServer returns a new handler given a webserver
 func (w *WebServer) NewHandlerForWebServer() *handlers.Handler {
 	return &handlers.Handler{
 		ServeFolder:        w.ServeFolder,
@@ -119,6 +126,7 @@ func (w *WebServer) NewHandlerForWebServer() *handlers.Handler {
 	}
 }
 
+// NewMetricsFromWebServer returns a new metrics from a webserver
 func (w *WebServer) NewMetricsFromWebServer() *metrics.Metrics {
 	return &metrics.Metrics{
 		Enabled: w.MetricsPortEnabled,
@@ -126,8 +134,7 @@ func (w *WebServer) NewMetricsFromWebServer() *metrics.Metrics {
 	}
 }
 
-// HandleWebserver ...
-// manages app initialisation
+// Listen starting listening according to the configuration
 func (w *WebServer) Listen() {
 	// bring up the API
 	forever := make(chan bool)
