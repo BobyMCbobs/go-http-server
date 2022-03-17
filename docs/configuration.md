@@ -1,12 +1,3 @@
-- [Environment variables](#org4361cdb)
-- [Templating](#org1b1cc68)
-- [Environment variables](#org1446e67)
-- [Helm configuration](#org22355f9)
-
-
-
-<a id="org4361cdb"></a>
-
 # Environment variables
 
 | Variable                  | Description                                                   | Default          |
@@ -23,9 +14,6 @@
 | `APP_VUEJS_HISTORY_MODE`  | Enable Vuejs history mode path rewriting                      | `false`          |
 | `APP_HEADER_SET_ENABLE`   | Enable header setting for requests                            | `false`          |
 | `APP_HEADER_MAP_PATH`     | The path to the header map                                    | `./headers.yaml` |
-
-
-<a id="org1b1cc68"></a>
 
 # Templating
 
@@ -64,9 +52,6 @@ Will render:
 </html>
 ```
 
-
-<a id="org1446e67"></a>
-
 # Environment variables
 
 Just like template map, environment variables can be highly dynamically set.
@@ -79,9 +64,6 @@ Just like template map, environment variables can be highly dynamically set.
 ```
 
 These headers will be added to the response. Headers configured this way can also be evaluated from environment variables.
-
-
-<a id="org22355f9"></a>
 
 # Helm configuration
 

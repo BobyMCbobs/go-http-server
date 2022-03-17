@@ -1,7 +1,0 @@
-#+TITLE: Development
-
-* Quick pattern
-
-#+begin_src bash
-tilt up --host 0.0.0.0 --hud
-#+end_src
