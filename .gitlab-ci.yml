@@ -49,7 +49,7 @@ variables:
     --jobs 100 \
     --bare \
     --platform all \
-    --tags "${IMAGE_DESTINATIONS},${IMAGE_RELEASE_DESTINATIONS:-latest}" \
+    --tags "${IMAGE_DESTINATIONS}" \
    .
 
 build-container:
