@@ -1,0 +1,16 @@
+builds:
+- id:
+  dir: .
+  main: cmd/gohttpserver
+  env:
+    - CGO_ENABLED=0
+  flags:
+  - -tags
+  - netgo
+  ldflags:
+  - -s -w
+  - -extldflags "-static"
+  - -X gitlab.com/safesurfer/go-http-server/pkg/common.AppBuildVersion={{ .Env.APP_BUILD_VERSION }}
+  - -X gitlab.com/safesurfer/go-http-server/pkg/common.AppBuildHash={{ .Env.APP_BUILD_HASH }}
+  - -X gitlab.com/safesurfer/go-http-server/pkg/common.AppBuildDate={{ .Env.APP_BUILD_DATE }}
+  - -X gitlab.com/safesurfer/go-http-server/pkg/common.AppBuildMode={{ .Env.APP_BUILD_MODE }}
