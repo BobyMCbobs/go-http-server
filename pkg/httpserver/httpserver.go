@@ -16,11 +16,19 @@ import (
 	"gitlab.com/safesurfer/go-http-server/pkg/metrics"
 )
 
+type ExtraHandler struct {
+	Path        string
+	HandlerFunc http.HandlerFunc
+	HTTPMethods []string
+}
+
 // WebServer configures the runtime
 type WebServer struct {
 	AppPort            string
 	EnvFile            string
 	Error404FilePath   string
+	ExtraHandlers      []*ExtraHandler
+	ExtraMiddleware    []func(http.Handler) http.Handler
 	GzipEnabled        bool
 	HTTPPort           string
 	HTTPSPort          string
@@ -71,6 +79,18 @@ func NewWebServer() *WebServer {
 // SetServeFolder sets the path to the ServeFolder
 func (w *WebServer) SetServeFolder(path string) *WebServer {
 	w.ServeFolder = path
+	return w
+}
+
+// SetExtraHandlers sets extra http handlers
+func (w *WebServer) SetExtraHandlers(hs ...*ExtraHandler) *WebServer {
+	w.ExtraHandlers = hs
+	return w
+}
+
+// SetExtraMiddleware sets extra http middleware
+func (w *WebServer) SetExtraMiddleware(m ...func(http.Handler) http.Handler) *WebServer {
+	w.ExtraMiddleware = m
 	return w
 }
 
@@ -146,9 +166,21 @@ func (w *WebServer) Listen() {
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
 
+	for _, m := range w.ExtraMiddleware {
+		router.Use(m)
+	}
+
 	w.Handler = w.NewHandlerForWebServer()
 	w.LoadHeaderMap()
 	w.LoadTemplateMap()
+
+	for _, h := range w.ExtraHandlers {
+		if h.Path == "/" {
+			log.Println("Warning: path / not allowed for extra handlers")
+			continue
+		}
+		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
+	}
 
 	fullServePath, _ := filepath.Abs(w.ServeFolder)
 	log.Printf("Serving folder '%v'\n", fullServePath)
