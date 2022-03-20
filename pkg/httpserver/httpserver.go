@@ -120,6 +120,15 @@ func (w *WebServer) LoadTemplateMap() *WebServer {
 	return w
 }
 
+// SetTemplateMap set the template map
+func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
+	if w.VueJSHistoryMode != true {
+		return w
+	}
+	w.Handler.TemplateMap = common.EvaluateEnvFromMap(input)
+	return w
+}
+
 // LoadHeaderMap loads the header map from the path
 func (w *WebServer) LoadHeaderMap() *WebServer {
 	if w.HeaderMapEnabled == false {
@@ -131,6 +140,15 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 	}
 	headerMap = common.EvaluateEnvFromHeaderMap(headerMap)
 	w.Handler.HeaderMap = headerMap
+	return w
+}
+
+// SetHeaderMap sets the header map
+func (w *WebServer) SetHeaderMap(input map[string][]string) *WebServer {
+	if w.HeaderMapEnabled == false {
+		return w
+	}
+	w.Handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input)
 	return w
 }
 
