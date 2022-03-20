@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -112,9 +111,7 @@ func GetVuejsHistoryMode() (output bool) {
 // GetEnableGZIP ...
 // Return whether we should handle GZIP.
 func GetEnableGZIP() (enable bool) {
-	val := GetEnvOrDefault("APP_HANDLE_GZIP", "false")
-	enable, _ = strconv.ParseBool(val)
-	return enable
+	return GetEnvOrDefault("APP_HANDLE_GZIP", "false") == "true"
 }
 
 // GetHeaderSetEnable ...

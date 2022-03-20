@@ -35,6 +35,7 @@ type WebServer struct {
 	HTTPSPortEnabled   bool
 	HeaderMapEnabled   bool
 	HeaderMapPath      string
+	HeaderMap          map[string][]string
 	HealthPort         string
 	HealthPortEnabled  bool
 	MetricsPort        string
@@ -46,27 +47,19 @@ type WebServer struct {
 	TLSKeyPath         string
 	TemplateMapPath    string
 	TemplateMapEnabled bool
+	TemplateMap        map[string]string
 	VueJSHistoryMode   bool
-	Handler            *handlers.Handler
+	handler            *handlers.Handler
 }
 
 // NewWebServer returns a default WebServer, as per environment configuration
 func NewWebServer() *WebServer {
-	return &WebServer{
-		AppPort:          common.GetAppPort(),
-		EnvFile:          common.GetAppEnvFile(),
-		Error404FilePath: common.Get404PageFileName(),
-		GzipEnabled:      common.GetEnableGZIP(),
-		Handler: &handlers.Handler{
-			Error404FilePath:   common.Get404PageFileName(),
-			HeaderMap:          map[string][]string{},
-			GzipEnabled:        common.GetEnableGZIP(),
-			HeaderMapEnabled:   common.GetHeaderSetEnable(),
-			TemplateMap:        map[string]string{},
-			TemplateMapEnabled: common.GetVuejsHistoryMode(),
-			VueJSHistoryMode:   common.GetVuejsHistoryMode(),
-			ServeFolder:        common.GetServeFolder(),
-		},
+	w := &WebServer{
+		AppPort:            common.GetAppPort(),
+		EnvFile:            common.GetAppEnvFile(),
+		Error404FilePath:   common.Get404PageFileName(),
+		GzipEnabled:        common.GetEnableGZIP(),
+		handler:            &handlers.Handler{},
 		HTTPPort:           common.GetAppPort(),
 		HTTPSPort:          common.GetAppHTTPSPort(),
 		HTTPSPortEnabled:   common.GetAppEnableHTTPS(),
@@ -84,6 +77,7 @@ func NewWebServer() *WebServer {
 		TemplateMapEnabled: true,
 		VueJSHistoryMode:   common.GetVuejsHistoryMode(),
 	}
+	return w
 }
 
 // SetServeFolder sets the path to the ServeFolder
@@ -126,13 +120,13 @@ func (w *WebServer) LoadTemplateMap() *WebServer {
 	if err != nil {
 		log.Panicf("[fatal] Error template map: %v\n", err)
 	}
-	w.Handler.TemplateMap = common.EvaluateEnvFromMap(configMap)
+	w.handler.TemplateMap = common.EvaluateEnvFromMap(configMap)
 	return w
 }
 
 // SetTemplateMap set the template map
 func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
-	w.Handler.TemplateMap = common.EvaluateEnvFromMap(input)
+	w.handler.TemplateMap = common.EvaluateEnvFromMap(input)
 	return w
 }
 
@@ -146,18 +140,17 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 		panic(err)
 	}
 	headerMap = common.EvaluateEnvFromHeaderMap(headerMap)
-	w.Handler.HeaderMap = headerMap
+	w.handler.HeaderMap = headerMap
 	return w
 }
 
 // SetHeaderMap sets the header map
 func (w *WebServer) SetHeaderMap(input map[string][]string) *WebServer {
-	w.Handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input)
+	w.handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input)
 	return w
 }
 
-// NewHandlerForWebServer returns a new handler given a webserver
-func (w *WebServer) NewHandlerForWebServer() *handlers.Handler {
+func (w *WebServer) newHandlerForWebServer() *handlers.Handler {
 	return &handlers.Handler{
 		ServeFolder:        w.ServeFolder,
 		VueJSHistoryMode:   w.VueJSHistoryMode,
@@ -165,12 +158,14 @@ func (w *WebServer) NewHandlerForWebServer() *handlers.Handler {
 		TemplateMapEnabled: w.TemplateMapEnabled,
 		Error404FilePath:   w.Error404FilePath,
 		GzipEnabled:        w.GzipEnabled,
+		HeaderMap:          w.HeaderMap,
+		TemplateMap:        w.TemplateMap,
 	}
 }
 
 // SetHandler sets a new handler
 func (w *WebServer) SetHandler(input *handlers.Handler) *WebServer {
-	w.Handler = input
+	w.handler = input
 	return w
 }
 
@@ -194,6 +189,7 @@ func (w *WebServer) Listen() {
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
 
+	w.handler = w.newHandlerForWebServer()
 	for _, m := range w.ExtraMiddleware {
 		router.Use(m)
 	}
@@ -211,7 +207,7 @@ func (w *WebServer) Listen() {
 
 	fullServePath, _ := filepath.Abs(w.ServeFolder)
 	log.Printf("Serving folder '%v'\n", fullServePath)
-	router.PathPrefix("/").Handler(w.Handler.ServeHandler())
+	router.PathPrefix("/").Handler(w.handler.ServeHandler())
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
