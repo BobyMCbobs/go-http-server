@@ -53,10 +53,20 @@ type WebServer struct {
 // NewWebServer returns a default WebServer, as per environment configuration
 func NewWebServer() *WebServer {
 	return &WebServer{
-		AppPort:            common.GetAppPort(),
-		EnvFile:            common.GetAppEnvFile(),
-		Error404FilePath:   common.Get404PageFileName(),
-		GzipEnabled:        common.GetEnableGZIP(),
+		AppPort:          common.GetAppPort(),
+		EnvFile:          common.GetAppEnvFile(),
+		Error404FilePath: common.Get404PageFileName(),
+		GzipEnabled:      common.GetEnableGZIP(),
+		Handler: &handlers.Handler{
+			Error404FilePath:   common.Get404PageFileName(),
+			HeaderMap:          map[string][]string{},
+			GzipEnabled:        common.GetEnableGZIP(),
+			HeaderMapEnabled:   common.GetHeaderSetEnable(),
+			TemplateMap:        map[string]string{},
+			TemplateMapEnabled: common.GetVuejsHistoryMode(),
+			VueJSHistoryMode:   common.GetVuejsHistoryMode(),
+			ServeFolder:        common.GetServeFolder(),
+		},
 		HTTPPort:           common.GetAppPort(),
 		HTTPSPort:          common.GetAppHTTPSPort(),
 		HTTPSPortEnabled:   common.GetAppEnableHTTPS(),
@@ -188,9 +198,6 @@ func (w *WebServer) Listen() {
 		router.Use(m)
 	}
 
-	if w.Handler == nil {
-		w.Handler = w.NewHandlerForWebServer()
-	}
 	w.LoadHeaderMap()
 	w.LoadTemplateMap()
 
