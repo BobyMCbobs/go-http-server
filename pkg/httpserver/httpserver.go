@@ -158,6 +158,12 @@ func (w *WebServer) NewHandlerForWebServer() *handlers.Handler {
 	}
 }
 
+// SetHandler sets a new handler
+func (w *WebServer) SetHandler(input *handlers.Handler) *WebServer {
+	w.Handler = input
+	return w
+}
+
 // NewMetricsFromWebServer returns a new metrics from a webserver
 func (w *WebServer) NewMetricsFromWebServer() *metrics.Metrics {
 	return &metrics.Metrics{
@@ -182,7 +188,9 @@ func (w *WebServer) Listen() {
 		router.Use(m)
 	}
 
-	w.Handler = w.NewHandlerForWebServer()
+	if w.Handler == nil {
+		w.Handler = w.NewHandlerForWebServer()
+	}
 	w.LoadHeaderMap()
 	w.LoadTemplateMap()
 
