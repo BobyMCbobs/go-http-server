@@ -189,7 +189,6 @@ func (w *WebServer) Listen() {
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
 
-	w.handler = w.newHandlerForWebServer()
 	for _, m := range w.ExtraMiddleware {
 		router.Use(m)
 	}
@@ -204,6 +203,7 @@ func (w *WebServer) Listen() {
 		}
 		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
 	}
+	w.handler = w.newHandlerForWebServer()
 
 	fullServePath, _ := filepath.Abs(w.ServeFolder)
 	log.Printf("Serving folder '%v'\n", fullServePath)
