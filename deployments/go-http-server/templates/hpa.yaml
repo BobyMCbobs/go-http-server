@@ -4,7 +4,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "go-http-server.fullname" . }}
   labels:
-    app: io.safesurfer.go-http-server
+    app: io.bobymcbobs.go-http-server
     {{- include "go-http-server.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:

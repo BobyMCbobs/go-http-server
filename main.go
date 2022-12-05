@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	common "gitlab.com/safesurfer/go-http-server/pkg/common"
-	ghs "gitlab.com/safesurfer/go-http-server/pkg/httpserver"
+	common "gitlab.com/BobyMCbobs/go-http-server/pkg/common"
+	ghs "gitlab.com/BobyMCbobs/go-http-server/pkg/httpserver"
 )
 
 func main() {

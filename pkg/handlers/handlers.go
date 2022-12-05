@@ -9,7 +9,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
-	"gitlab.com/safesurfer/go-http-server/pkg/common"
+	"gitlab.com/BobyMCbobs/go-http-server/pkg/common"
 )
 
 // Handler holds the information needed to create handlers

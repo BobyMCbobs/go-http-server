@@ -77,7 +77,7 @@ These headers will be added to the response. Headers configured this way can als
 | headerMapPath                                 | The path to a header map                                                                          | `/app/headers.yaml`                             |
 | labels                                        | Extra labels to add to all managed resources                                                      | `{}`                                            |
 | extraEnv                                      | Declare extra environment variables                                                               |                                                 |
-| image.repository                              | The repo where the image lives                                                                    | `registry.gitlab.com/safesurfer/go-http-server` |
+| image.repository                              | The repo where the image lives                                                                    | `registry.gitlab.com/bobymcbobs/go-http-server` |
 | image.tag                                     | Specifies a tag of from the image to use                                                          | `latest`                                        |
 | image.pullPolicy                              | Pod container pull policy                                                                         | `IfNotPresent`                                  |
 | imagePullSecrets                              | References for the registry secrets to pull the container images in the Pod with                  | `[]`                                            |
