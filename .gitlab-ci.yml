@@ -28,9 +28,6 @@ variables:
   if [[ -z "$CI_COMMIT_TAG" ]]; then
     PRINTABLE_COMMIT_HASH="-$APP_BUILD_HASH"
   fi
-  if [[ ! "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]] && [[ -z "$CI_COMMIT_TAG" ]]; then
-    BRANCH_NAME="-$CI_COMMIT_BRANCH"
-  fi
   PROJECT_PATH=$(echo $CI_PROJECT_PATH | tr '[:upper:]' '[:lower:]')
 
 .image-pre-build-release-version: &image-pre-build-release-version |
@@ -41,7 +38,7 @@ variables:
     export APP_BUILD_MODE=production
     export IMAGE_RELEASE_DESTINATIONS="$APP_BUILD_VERSION"
   fi
-  export IMAGE_DESTINATIONS="latest$BRANCH_NAME"
+  export IMAGE_DESTINATIONS="latest"
 
 .image-build: &image-build |
   ko publish \
@@ -63,7 +60,7 @@ build-container:
   before_script:
     - set -x
     - go install github.com/google/ko@latest
-    - KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
+    - export KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
     - *container-registry-login-ko
     - *image-build-taggable-name
     - *image-pre-build-release-version
