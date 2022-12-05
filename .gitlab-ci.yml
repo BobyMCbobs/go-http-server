@@ -63,6 +63,7 @@ build-container:
   before_script:
     - set -x
     - go install github.com/google/ko@latest
+    - KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
     - *container-registry-login-ko
     - *image-build-taggable-name
     - *image-pre-build-release-version
