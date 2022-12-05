@@ -1,7 +1,4 @@
-- [Quick pattern](#sec-1)
-
-
-# Quick pattern<a id="sec-1"></a>
+# Quick pattern
 
 ```bash
 tilt up --host 0.0.0.0 --hud

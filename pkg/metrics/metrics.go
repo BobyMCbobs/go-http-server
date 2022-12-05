@@ -2,20 +2,24 @@ package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.com/safesurfer/go-http-server/pkg/common"
 	"log"
 	"net/http"
 )
 
+// Metrics configures the metrics handler
+type Metrics struct {
+	Enabled bool
+	Port    string
+}
+
 // Handle ...
 // HTTP handler for metrics
-func Handle() {
-	if common.GetAppMetricsEnabled() != "true" {
+func (m *Metrics) Handle() {
+	if m.Enabled == false {
 		return
 	}
 
-	port := common.GetAppMetricsPort()
 	http.Handle("/metrics", promhttp.Handler())
-	log.Printf("Metrics listening on %v\n", port)
-	http.ListenAndServe(port, nil)
+	log.Printf("Metrics listening on %v\n", m.Port)
+	http.ListenAndServe(m.Port, nil)
 }

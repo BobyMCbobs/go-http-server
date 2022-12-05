@@ -1,5 +1,0 @@
-#+TITLE: Go-HTTP-Server
-
-#+begin_quote
-A HTTP server for sharing a local folder
-#+end_quote

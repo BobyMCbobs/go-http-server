@@ -10,13 +10,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
 
 // AppBuild metadata
-const (
+var (
 	AppName         = "go-http-server"
 	AppBuildVersion = "0.0.0"
 	AppBuildHash    = "???"
@@ -32,8 +31,8 @@ func GetAppEnvFile() (output string) {
 
 // GetAppHealthPortEnabled ...
 // enable the binding of a health port
-func GetAppHealthPortEnabled() (output string) {
-	return GetEnvOrDefault("APP_HEALTH_PORT_ENABLED", "true")
+func GetAppHealthPortEnabled() (output bool) {
+	return GetEnvOrDefault("APP_HEALTH_PORT_ENABLED", "true") == "true"
 }
 
 // GetAppHealthPort ...
@@ -54,10 +53,22 @@ func GetAppHTTPSPort() (output string) {
 	return GetEnvOrDefault("APP_HTTPS_PORT", ":8443")
 }
 
+// GetAppHTTPSCrtPath ...
+// The TLS cert to use for serving HTTPS
+func GetAppHTTPSCrtPath() (output string) {
+	return GetEnvOrDefault("APP_HTTPS_CRT_PATH", "")
+}
+
+// GetAppHTTPSKeyPath ...
+// The TLS cert to use for serving HTTPS
+func GetAppHTTPSKeyPath() (output string) {
+	return GetEnvOrDefault("APP_HTTPS_KEY_PATH", "")
+}
+
 // GetAppEnableHTTPS ...
 // Whether to enable serving HTTPS.
-func GetAppEnableHTTPS() (output string) {
-	return GetEnvOrDefault("APP_ENABLE_HTTPS", "false")
+func GetAppEnableHTTPS() (output bool) {
+	return GetEnvOrDefault("APP_ENABLE_HTTPS", "false") == "true"
 }
 
 // GetAppMetricsPort ...
@@ -68,8 +79,8 @@ func GetAppMetricsPort() (output string) {
 
 // GetAppMetricsEnabled ...
 // serve metrics endpoint
-func GetAppMetricsEnabled() (output string) {
-	return GetEnvOrDefault("APP_METRICS_ENABLED", "true")
+func GetAppMetricsEnabled() (output bool) {
+	return GetEnvOrDefault("APP_METRICS_ENABLED", "true") == "true"
 }
 
 // GetAppRealIPHeader ...
@@ -93,22 +104,20 @@ func GetTemplateMapPath() (output string) {
 
 // GetVuejsHistoryMode ...
 // return if to use Vuejs history mode
-func GetVuejsHistoryMode() (output string) {
-	return GetEnvOrDefault("APP_VUEJS_HISTORY_MODE", "false")
+func GetVuejsHistoryMode() (output bool) {
+	return GetEnvOrDefault("APP_VUEJS_HISTORY_MODE", "false") == "true"
 }
 
 // GetEnableGZIP ...
 // Return whether we should handle GZIP.
 func GetEnableGZIP() (enable bool) {
-	val := GetEnvOrDefault("APP_HANDLE_GZIP", "false")
-	enable, _ = strconv.ParseBool(val)
-	return enable
+	return GetEnvOrDefault("APP_HANDLE_GZIP", "false") == "true"
 }
 
 // GetHeaderSetEnable ...
 // return if headers should be templated
-func GetHeaderSetEnable() (output string) {
-	return GetEnvOrDefault("APP_HEADER_SET_ENABLE", "false")
+func GetHeaderSetEnable() (output bool) {
+	return GetEnvOrDefault("APP_HEADER_SET_ENABLE", "false") == "true"
 }
 
 // GetHeaderMapPath ...

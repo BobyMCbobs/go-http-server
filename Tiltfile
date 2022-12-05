@@ -1,3 +1,4 @@
+load('ext://ko', 'ko_build')
 yaml = helm(
   'deployments/go-http-server',
   name='go-http-server-dev',
@@ -7,5 +8,7 @@ yaml = helm(
   ]
   )
 k8s_yaml(yaml)
-docker_build('registry.gitlab.com/safesurfer/go-http-server', '.', dockerfile="build/Dockerfile")
+ko_build('registry.gitlab.com/safesurfer/go-http-server',
+         '.',
+         deps=['./'])
 allow_k8s_contexts('in-cluster')

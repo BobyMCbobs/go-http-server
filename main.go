@@ -1,18 +1,16 @@
-/*
-	initialise the API
-*/
-
 package main
 
 import (
 	"log"
 
-	gohttpserver "gitlab.com/safesurfer/go-http-server/cmd/gohttpserver"
 	common "gitlab.com/safesurfer/go-http-server/pkg/common"
+	ghs "gitlab.com/safesurfer/go-http-server/pkg/httpserver"
 )
 
 func main() {
 	// initialise the app
 	log.Printf("%v (%v, %v, %v, %v)\n", common.AppName, common.AppBuildVersion, common.AppBuildHash, common.AppBuildMode, common.AppBuildDate)
-	gohttpserver.HandleWebserver()
+	ws := ghs.NewWebServer()
+	log.Printf("Configuration: %#v\n", ws)
+	ws.Listen()
 }
