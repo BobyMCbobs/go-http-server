@@ -1,4 +1,4 @@
-module gitlab.com/safesurfer/go-http-server
+module gitlab.com/BobyMCbobs/go-http-server
 
 go 1.19
 

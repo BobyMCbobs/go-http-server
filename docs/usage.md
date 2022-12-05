@@ -1,4 +1,4 @@
-> Packaging your site with safesurfer/go-http-server
+> Packaging your site with BobyMCbobs/go-http-server
 
 # Container build
 
@@ -7,7 +7,7 @@
 Just serve your site
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
 COPY site /app/site
 ```
 
@@ -16,7 +16,7 @@ COPY site /app/site
 Serve your site and set headers
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
 env APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
 COPY site /app/site
@@ -28,7 +28,7 @@ COPY headers.yaml /app/headers.yaml
 Serve your site using [history mode](https://router.vuejs.org/guide/essentials/history-mode.html)
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
 env APP_VUEJS_HISTORY_MODE=true
 COPY dist /app/dist
 ```
@@ -38,7 +38,7 @@ COPY dist /app/dist
 Serve your site using history mode and Go html templating for index.html
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
 env APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml
@@ -51,7 +51,7 @@ COPY templatemap.yaml /app/map.yaml
 Serve your site using history mode and Go html templating for index.html, with setting headers
 
 ```dockerfile
-FROM registry.gitlab.com/safesurfer/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
 env APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
   APP_TEMPLATE_MAP_PATH=/app/map.yaml \
@@ -70,8 +70,8 @@ Sometimes it is useful to implement go-http-server with importing it
 package main
 
 import (
-  common "gitlab.com/safesurfer/go-http-server/pkg/common"
-  ghs "gitlab.com/safesurfer/go-http-server/pkg/httpserver"
+  common "gitlab.com/BobyMCbobs/go-http-server/pkg/common"
+  ghs "gitlab.com/BobyMCbobs/go-http-server/pkg/httpserver"
 )
 
 func main() {
@@ -86,6 +86,6 @@ func main() {
 A webserver, serving on port 8080, can be brought up instantly to share files.
 
 ```bash
-go install gitlab.com/safesurfer/go-http-server@latest
+go install gitlab.com/BobyMCbobs/go-http-server@latest
 go-http-server
 ```

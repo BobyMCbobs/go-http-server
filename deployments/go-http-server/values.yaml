@@ -18,7 +18,7 @@ headerMapPath: /app/headers/headers.yaml
 replicaCount: 1
 
 image:
-  repository: registry.gitlab.com/safesurfer/go-http-server
+  repository: registry.gitlab.com/bobymcbobs/go-http-server
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

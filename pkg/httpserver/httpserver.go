@@ -11,9 +11,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 
-	"gitlab.com/safesurfer/go-http-server/pkg/common"
-	"gitlab.com/safesurfer/go-http-server/pkg/handlers"
-	"gitlab.com/safesurfer/go-http-server/pkg/metrics"
+	"gitlab.com/BobyMCbobs/go-http-server/pkg/common"
+	"gitlab.com/BobyMCbobs/go-http-server/pkg/handlers"
+	"gitlab.com/BobyMCbobs/go-http-server/pkg/metrics"
 )
 
 type ExtraHandler struct {

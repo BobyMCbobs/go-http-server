@@ -8,7 +8,7 @@ yaml = helm(
   ]
   )
 k8s_yaml(yaml)
-ko_build('registry.gitlab.com/safesurfer/go-http-server',
+ko_build('registry.gitlab.com/BobyMCbobs/go-http-server',
          '.',
          deps=['./'])
 allow_k8s_contexts('in-cluster')

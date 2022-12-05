@@ -4,7 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "go-http-server.fullname" . }}-templatemap
   labels:
-    app: io.safesurfer.go-http-server
+    app: io.bobymcbobs.go-http-server
     {{- include "go-http-server.labels" . | nindent 4 }}
 {{- if .Values.labels }}
 {{- with .Values.labels }}

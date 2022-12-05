@@ -9,7 +9,7 @@ extraEnv:
       It supports SPA navigation (for Vue.js), as well as go html templating the index.html file upon serving.
 
       Find out more at:
-        https://safesurfer.gitlab.io/go-http-server
+        https://BobyMCbobs.gitlab.io/go-http-server
 
 vuejsHistoryMode: true
 

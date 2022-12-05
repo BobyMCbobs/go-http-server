@@ -14,8 +14,8 @@ We appreciate all the help which will come from this project, so we greatly than
 
 # Community Agreements
 
-To contribute to this project, please read [the community agreements docs](<https://gitlab.com/safesurfer/community/-/blob/master/docs/CONTRIBUTING.md>).
+To contribute to this project, please read [the community agreements docs](<https://gitlab.com/BobyMCbobs/community/-/blob/master/docs/CONTRIBUTING.md>).
 
 # Your first commit
 
-Looking for places to start? A good place is the [issues](<https://gitlab.com/safesurfer/minio-file-server/issues>) page. There will likely be a few issues for you to check out and to see if you can resolve.
+Looking for places to start? A good place is the [issues](<https://gitlab.com/BobyMCbobs/minio-file-server/issues>) page. There will likely be a few issues for you to check out and to see if you can resolve.

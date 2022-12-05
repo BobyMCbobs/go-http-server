@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "go-http-server.fullname" . }}
   labels:
-    app: io.safesurfer.go-http-server
+    app: io.bobymcbobs.go-http-server
     {{- include "go-http-server.labels" . | nindent 4 }}
 {{- if .Values.labels }}
 {{- with .Values.labels }}
@@ -16,7 +16,7 @@ spec:
 {{- end }}
   selector:
     matchLabels:
-      app: io.safesurfer.go-http-server
+      app: io.bobymcbobs.go-http-server
       {{- include "go-http-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
@@ -25,7 +25,7 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       labels:
-        app: io.safesurfer.go-http-server
+        app: io.bobymcbobs.go-http-server
         {{- include "go-http-server.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}

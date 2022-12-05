@@ -11,7 +11,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: io.safesurfer.go-http-server
+    app: io.bobymcbobs.go-http-server
     {{- include "go-http-server.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
