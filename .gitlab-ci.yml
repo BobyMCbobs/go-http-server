@@ -13,8 +13,8 @@ variables:
   ARCHES: amd64 arm64
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
-  IMAGE_GOLANG_ALPINE: docker.io/golang:1.17.0-alpine3.14
-  IMAGE_ALPINE: docker.io/alpine:3.14
+  IMAGE_GOLANG_ALPINE: docker.io/golang:1.19.0-alpine3.15
+  IMAGE_ALPINE: docker.io/alpine:3.15
   IMAGE_DOCKER: docker.io/docker:20.10.6
   IMAGE_PYTHON: python:3.8-buster
 
