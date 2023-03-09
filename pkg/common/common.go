@@ -93,7 +93,7 @@ func GetAppRealIPHeader() (output string) {
 // return the path of the folder to serve
 func GetServeFolder() (output string) {
 	pwd, _ := os.Getwd()
-	return GetEnvOrDefault("APP_SERVE_FOLDER", pwd)
+	return GetEnvOrDefault("APP_SERVE_FOLDER", GetEnvOrDefault("KO_DATA_PATH", pwd))
 }
 
 // GetTemplateMapPath ...
