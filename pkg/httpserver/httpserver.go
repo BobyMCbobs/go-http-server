@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -77,6 +78,9 @@ func NewWebServer() *WebServer {
 		TemplateMapEnabled: true,
 		VueJSHistoryMode:   common.GetVuejsHistoryMode(),
 	}
+	if cfg, err := common.LoadDotfileConfig(w.ServeFolder); err == nil {
+		w.VueJSHistoryMode = cfg.HistoryMode
+	}
 	return w
 }
 
@@ -114,6 +118,10 @@ func (w *WebServer) LoadTLS() *WebServer {
 // LoadTemplateMap loads the template map from the path
 func (w *WebServer) LoadTemplateMap() *WebServer {
 	if w.VueJSHistoryMode != true {
+		return w
+	}
+	if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
+		log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
 		return w
 	}
 	configMap, err := common.LoadMapConfig(w.TemplateMapPath)
