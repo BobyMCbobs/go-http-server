@@ -6,21 +6,22 @@ package common
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path"
 
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 // AppBuild metadata
 var (
-	AppName         = "go-http-server"
-	AppBuildVersion = "0.0.0"
-	AppBuildHash    = "???"
-	AppBuildDate    = "???"
-	AppBuildMode    = "???"
+	AppName                  = "go-http-server"
+	AppBuildVersion          = "0.0.0"
+	AppBuildHash             = "???"
+	AppBuildDate             = "???"
+	AppBuildMode             = "???"
+	AppServeFolderConfigName = ".ghs.yaml"
 )
 
 // GetAppEnvFile ...
@@ -155,7 +156,7 @@ func EvaluateEnvFromMap(input map[string]string) (output map[string]string) {
 // LoadMapConfig ...
 // loads map config as YAML
 func LoadMapConfig(path string) (output map[string]string, err error) {
-	mapBytes, err := ioutil.ReadFile(path)
+	mapBytes, err := os.ReadFile(path)
 	if err != nil {
 		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
 	}
@@ -178,7 +179,7 @@ func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]st
 // LoadHeaderMapConfig ...
 // loads map config as YAML
 func LoadHeaderMapConfig(path string) (output map[string][]string, err error) {
-	mapBytes, err := ioutil.ReadFile(path)
+	mapBytes, err := os.ReadFile(path)
 	if err != nil {
 		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
 	}
@@ -217,4 +218,23 @@ func Logging(next http.Handler) http.Handler {
 		log.Printf("%v %v %v %v %v %v %#v", r.Method, r.URL, r.Proto, r.Response, requestIP, r.RemoteAddr, r.Header)
 		next.ServeHTTP(w, r)
 	})
+}
+
+type DotfileConfig struct {
+	HistoryMode bool `json:"historyMode"`
+}
+
+// LoadDotfileConfig ...
+// loads a .ghs.yaml in the serve folder
+func LoadDotfileConfig(serveFolder string) (cfg DotfileConfig, err error) {
+	configPath := path.Join(serveFolder, AppServeFolderConfigName)
+	file, err := os.ReadFile(configPath)
+	if err != nil {
+		return DotfileConfig{}, err
+	}
+	err = yaml.Unmarshal(file, &cfg)
+	if err != nil {
+		return DotfileConfig{}, err
+	}
+	return cfg, nil
 }
