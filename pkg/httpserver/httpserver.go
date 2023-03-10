@@ -25,61 +25,67 @@ type ExtraHandler struct {
 
 // WebServer configures the runtime
 type WebServer struct {
-	AppPort            string
-	EnvFile            string
-	Error404FilePath   string
-	ExtraHandlers      []*ExtraHandler
-	ExtraMiddleware    []func(http.Handler) http.Handler
-	GzipEnabled        bool
-	HTTPPort           string
-	HTTPSPort          string
-	HTTPSPortEnabled   bool
-	HeaderMapEnabled   bool
-	HeaderMapPath      string
-	HeaderMap          map[string][]string
-	HealthPort         string
-	HealthPortEnabled  bool
-	MetricsPort        string
-	MetricsPortEnabled bool
-	RealIPHeader       string
-	ServeFolder        string
-	TLSCertPath        string
-	TLSConfig          *tls.Config
-	TLSKeyPath         string
-	TemplateMapPath    string
-	TemplateMapEnabled bool
-	TemplateMap        map[string]string
-	VueJSHistoryMode   bool
-	handler            *handlers.Handler
+	AppPort               string
+	EnvFile               string
+	Error404FilePath      string
+	ExtraHandlers         []*ExtraHandler
+	ExtraMiddleware       []func(http.Handler) http.Handler
+	GzipEnabled           bool
+	HTTPPort              string
+	HTTPSPort             string
+	HTTPSPortEnabled      bool
+	HeaderMap             map[string][]string
+	HeaderMapEnabled      bool
+	HeaderMapPath         string
+	HealthPort            string
+	HealthPortEnabled     bool
+	MetricsPort           string
+	MetricsPortEnabled    bool
+	RealIPHeader          string
+	RedirectRoutes        map[string]string
+	RedirectRoutesEnabled bool
+	RedirectRoutesPath    string
+	ServeFolder           string
+	TLSCertPath           string
+	TLSConfig             *tls.Config
+	TLSKeyPath            string
+	TemplateMap           map[string]string
+	TemplateMapEnabled    bool
+	TemplateMapPath       string
+	VueJSHistoryMode      bool
+	handler               *handlers.Handler
 }
 
 // NewWebServer returns a default WebServer, as per environment configuration
 func NewWebServer() *WebServer {
 	w := &WebServer{
-		AppPort:            common.GetAppPort(),
-		EnvFile:            common.GetAppEnvFile(),
-		Error404FilePath:   common.Get404PageFileName(),
-		GzipEnabled:        common.GetEnableGZIP(),
-		handler:            &handlers.Handler{},
-		HTTPPort:           common.GetAppPort(),
-		HTTPSPort:          common.GetAppHTTPSPort(),
-		HTTPSPortEnabled:   common.GetAppEnableHTTPS(),
-		HeaderMapEnabled:   common.GetHeaderSetEnable(),
-		HeaderMapPath:      common.GetHeaderMapPath(),
-		HealthPort:         common.GetAppHealthPort(),
-		HealthPortEnabled:  common.GetAppHealthPortEnabled(),
-		MetricsPort:        common.GetAppMetricsPort(),
-		MetricsPortEnabled: common.GetAppMetricsEnabled(),
-		RealIPHeader:       common.GetAppRealIPHeader(),
-		ServeFolder:        common.GetServeFolder(),
-		TLSCertPath:        common.GetAppHTTPSCrtPath(),
-		TLSKeyPath:         common.GetAppHTTPSKeyPath(),
-		TemplateMapPath:    common.GetTemplateMapPath(),
-		TemplateMapEnabled: true,
-		VueJSHistoryMode:   common.GetVuejsHistoryMode(),
+		AppPort:               common.GetAppPort(),
+		EnvFile:               common.GetAppEnvFile(),
+		Error404FilePath:      common.Get404PageFileName(),
+		GzipEnabled:           common.GetEnableGZIP(),
+		HTTPPort:              common.GetAppPort(),
+		HTTPSPort:             common.GetAppHTTPSPort(),
+		HTTPSPortEnabled:      common.GetAppEnableHTTPS(),
+		HeaderMapEnabled:      common.GetHeaderSetEnable(),
+		HeaderMapPath:         common.GetHeaderMapPath(),
+		HealthPort:            common.GetAppHealthPort(),
+		HealthPortEnabled:     common.GetAppHealthPortEnabled(),
+		MetricsPort:           common.GetAppMetricsPort(),
+		MetricsPortEnabled:    common.GetAppMetricsEnabled(),
+		RealIPHeader:          common.GetAppRealIPHeader(),
+		RedirectRoutesEnabled: common.GetRedirectRoutesEnabled(),
+		RedirectRoutesPath:    common.GetRedirectRoutesPath(),
+		ServeFolder:           common.GetServeFolder(),
+		TLSCertPath:           common.GetAppHTTPSCrtPath(),
+		TLSKeyPath:            common.GetAppHTTPSKeyPath(),
+		TemplateMapEnabled:    true,
+		TemplateMapPath:       common.GetTemplateMapPath(),
+		VueJSHistoryMode:      common.GetVuejsHistoryMode(),
+		handler:               &handlers.Handler{},
 	}
 	if cfg, err := common.LoadDotfileConfig(w.ServeFolder); err == nil {
 		w.VueJSHistoryMode = cfg.HistoryMode
+		w.RedirectRoutes = cfg.RedirectRoutes
 	}
 	return w
 }
@@ -199,6 +205,18 @@ func (w *WebServer) Listen() {
 
 	for _, m := range w.ExtraMiddleware {
 		router.Use(m)
+	}
+	if w.RedirectRoutesEnabled {
+		if w.RedirectRoutes == nil {
+			redirectRoutes, err := common.LoadRedirectRoutesConfig(w.RedirectRoutesPath)
+			if err != nil {
+				log.Println("Warning: failed to load redirect routes")
+			}
+			w.RedirectRoutes = redirectRoutes
+		}
+		for from, to := range w.RedirectRoutes {
+			router.HandleFunc(from, w.handler.ServeStandardRedirect(from, to)).Methods(http.MethodGet)
+		}
 	}
 
 	w.LoadHeaderMap()

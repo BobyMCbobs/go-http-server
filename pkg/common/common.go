@@ -133,6 +133,18 @@ func Get404PageFileName() (output string) {
 	return GetEnvOrDefault("APP_404_PAGE_FILE_NAME", "404.html")
 }
 
+// GetRedirectRoutesEnabled ...
+// return if redirecting routes should be enabled
+func GetRedirectRoutesEnabled() (output bool) {
+	return GetEnvOrDefault("APP_REDIRECT_ROUTES_ENABLED", "true") == "true"
+}
+
+// GetRedirectRoutesEnabled ...
+// return if redirecting routes should be enabled
+func GetRedirectRoutesPath() (output string) {
+	return GetEnvOrDefault("APP_REDIRECT_ROUTES_PATH", "./redirects.yaml")
+}
+
 // GetEnvOrDefault ...
 // given an env var return it's value, else return a default
 func GetEnvOrDefault(envName string, defaultValue string) (output string) {
@@ -161,7 +173,10 @@ func LoadMapConfig(path string) (output map[string]string, err error) {
 		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
 	}
 	err = yaml.Unmarshal(mapBytes, &output)
-	return output, err
+	if err != nil {
+		return map[string]string{}, err
+	}
+	return output, nil
 }
 
 // EvaluateEnvFromHeaderMap ...
@@ -181,10 +196,13 @@ func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]st
 func LoadHeaderMapConfig(path string) (output map[string][]string, err error) {
 	mapBytes, err := os.ReadFile(path)
 	if err != nil {
-		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
+		return map[string][]string{}, fmt.Errorf("Failed to load map file: %v", err.Error())
 	}
 	err = yaml.Unmarshal(mapBytes, &output)
-	return output, err
+	if err != nil {
+		return map[string][]string{}, err
+	}
+	return output, nil
 }
 
 // WriteHeadersToResponse ...
@@ -221,7 +239,8 @@ func Logging(next http.Handler) http.Handler {
 }
 
 type DotfileConfig struct {
-	HistoryMode bool `json:"historyMode"`
+	HistoryMode    bool              `json:"historyMode"`
+	RedirectRoutes map[string]string `json:"redirectRoutes"`
 }
 
 // LoadDotfileConfig ...
@@ -237,4 +256,18 @@ func LoadDotfileConfig(serveFolder string) (cfg DotfileConfig, err error) {
 		return DotfileConfig{}, err
 	}
 	return cfg, nil
+}
+
+// LoadRedirectRoutesConfig ...
+// loads map config as YAML
+func LoadRedirectRoutesConfig(path string) (output map[string]string, err error) {
+	mapBytes, err := os.ReadFile(path)
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("Failed to load map file: %v", err.Error())
+	}
+	err = yaml.Unmarshal(mapBytes, &output)
+	if err != nil {
+		return map[string]string{}, err
+	}
+	return output, nil
 }
