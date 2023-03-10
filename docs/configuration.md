@@ -72,6 +72,7 @@ Current values for configuration are
 
 ```yaml
 historyMode: bool
+redirectRoutes: map[string]string
 ```
 
 for overriding the value set by the server.
