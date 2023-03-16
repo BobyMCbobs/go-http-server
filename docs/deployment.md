@@ -1,3 +1,10 @@
+# As a base image
+
+```
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
+ADD mysite /var/run/ko
+```
+
 # Helm
 
 ## Preliminary steps
