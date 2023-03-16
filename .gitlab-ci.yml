@@ -34,15 +34,6 @@ variables:
     export IMAGE_DESTINATIONS="${IMAGE_DESTINATIONS},${IMAGE_RELEASE_DESTINATIONS}"
   fi
 
-.image-build: &image-build |
-  ko publish \
-    --push \
-    --jobs 100 \
-    --bare \
-    --platform all \
-    --tags "${IMAGE_DESTINATIONS}" \
-   .
-
 build-container:
   stage: build
   image:
@@ -57,7 +48,12 @@ build-container:
     - ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
     - *image-set-build-env
   script:
-    - *image-build
+    - |
+      ko publish \
+      --bare \
+      --platform all \
+      --tags "${IMAGE_DESTINATIONS}" \
+      .
 
 spell_check:
   stage: lint
@@ -85,7 +81,7 @@ lint_helm_chart:
   stage: lint
   image:
     name: $IMAGE_HELM
-    entrypoint: [""]
+    entrypoint: ["helm"]
   allow_failure: true
   before_script:
   script:
