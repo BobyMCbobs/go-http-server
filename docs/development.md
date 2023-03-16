@@ -1,5 +1,16 @@
-# Quick pattern
+# Development
 
-```bash
-tilt up --host 0.0.0.0 --hud
+Build and run
+```
+go run .
+```
+
+Compile to a binary
+```
+go build -o bin/go-http-server .
+```
+
+Build a container
+```
+ko build .
 ```
