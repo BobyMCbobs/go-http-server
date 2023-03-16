@@ -13,32 +13,26 @@ variables:
   ARCHES: amd64 arm64
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
-  IMAGE_GOLANG_ALPINE: docker.io/golang:1.19.0-alpine3.15
+  IMAGE_KO: ghcr.io/ko-build/ko:v0.13.0
   IMAGE_ALPINE: docker.io/alpine:3.15
-  IMAGE_DOCKER: docker.io/docker:20.10.6
+  IMAGE_HELM: cgr.dev/chainguard/helm:3
   IMAGE_PYTHON: python:3.8-buster
 
-.container-registry-login-ko: &container-registry-login-ko |
-  ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
-
-.image-build-taggable-name: &image-build-taggable-name |
+.image-set-build-env: &image-set-build-env |
   echo "Commit made on '${CI_COMMIT_TIMESTAMP}'"
   export APP_BUILD_HASH="$CI_COMMIT_SHORT_SHA"
   export APP_BUILD_DATE=$(date --date="${CI_COMMIT_TIMESTAMP//[T+]/ }" '+%Y.%m.%d.%H%M')
-  if [[ -z "$CI_COMMIT_TAG" ]]; then
-    PRINTABLE_COMMIT_HASH="-$APP_BUILD_HASH"
-  fi
-  PROJECT_PATH=$(echo $CI_PROJECT_PATH | tr '[:upper:]' '[:lower:]')
-
-.image-pre-build-release-version: &image-pre-build-release-version |
   export APP_BUILD_VERSION=0.0.0
   export APP_BUILD_MODE=development
+  export IMAGE_DESTINATIONS="latest"
   if [[ ! -z "$CI_COMMIT_TAG" ]]; then
     export APP_BUILD_VERSION="$CI_COMMIT_TAG"
     export APP_BUILD_MODE=production
     export IMAGE_RELEASE_DESTINATIONS="$APP_BUILD_VERSION"
   fi
-  export IMAGE_DESTINATIONS="latest"
+  if [ ! -z "${IMAGE_RELEASE_DESTINATIONS}" ]; then
+    export IMAGE_DESTINATIONS="${IMAGE_DESTINATIONS},${IMAGE_RELEASE_DESTINATIONS}"
+  fi
 
 .image-build: &image-build |
   ko publish \
@@ -52,55 +46,48 @@ variables:
 build-container:
   stage: build
   image:
-    name: $IMAGE_GOLANG_ALPINE
+    name: $IMAGE_KO
     entrypoint: [""]
   retry: 2
   variables:
     KO_DOCKER_REPO: "$CI_REGISTRY_IMAGE"
   before_script:
     - set -x
-    - go install github.com/google/ko@latest
     - export KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
-    - *container-registry-login-ko
-    - *image-build-taggable-name
-    - *image-pre-build-release-version
+    - ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
+    - *image-set-build-env
   script:
     - *image-build
 
 spell_check:
   stage: lint
-  image: golang:1.13.10-alpine3.11
+  image:
+    name: $IMAGE_KO
+    entrypoint: [""]
   allow_failure: true
   before_script:
-    - go get -u github.com/client9/misspell/cmd/misspell
+    - go install github.com/client9/misspell/cmd/misspell@latest
   script:
     - misspell -error main.go cmd pkg docs k8s-manifests README*
 
 lint_backend:
   stage: lint
-  image: $IMAGE_GOLANG_ALPINE
+  image:
+    name: $IMAGE_KO
+    entrypoint: [""]
   allow_failure: true
   before_script:
-    - apk add git gcc
-    - go get -u golang.org/x/lint/golint
+    - go install golang.org/x/lint/golint@latest
   script:
     - golint -set_exit_status ./...
 
 lint_helm_chart:
   stage: lint
-  image: $IMAGE_ALPINE
-  variables:
-    HELM_LINK: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
-    HELM_HASH: 270acb0f085b72ec28aee894c7443739271758010323d72ced0e92cd2c96ffdb
+  image:
+    name: $IMAGE_HELM
+    entrypoint: [""]
   allow_failure: true
   before_script:
-    - apk add curl
-    - curl -L -o helm.tar.gz $HELM_LINK
-    - |
-        if [ ! $(sha256sum helm.tar.gz) = $HELM_HASH ]; then
-          exit 1
-        fi
-    - cat helm.tar.gz | tar --directory /usr/local/bin --extract -xz --strip-components 1 linux-amd64/helm
   script:
     - helm lint deployments/go-http-server
 
