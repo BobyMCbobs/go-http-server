@@ -17,6 +17,8 @@ import (
 	"gitlab.com/BobyMCbobs/go-http-server/pkg/metrics"
 )
 
+// ExtraHandler ...
+// add extra endpoints to listen on
 type ExtraHandler struct {
 	Path        string
 	HandlerFunc http.HandlerFunc

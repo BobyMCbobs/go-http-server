@@ -139,7 +139,7 @@ func GetRedirectRoutesEnabled() (output bool) {
 	return GetEnvOrDefault("APP_REDIRECT_ROUTES_ENABLED", "true") == "true"
 }
 
-// GetRedirectRoutesEnabled ...
+// GetRedirectRoutesPath ...
 // return if redirecting routes should be enabled
 func GetRedirectRoutesPath() (output string) {
 	return GetEnvOrDefault("APP_REDIRECT_ROUTES_PATH", "./redirects.yaml")
@@ -238,6 +238,8 @@ func Logging(next http.Handler) http.Handler {
 	})
 }
 
+// DotfileConfig ...
+// dotfiles found in the web root
 type DotfileConfig struct {
 	HistoryMode    bool              `json:"historyMode"`
 	RedirectRoutes map[string]string `json:"redirectRoutes"`
