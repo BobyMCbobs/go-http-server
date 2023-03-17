@@ -88,6 +88,12 @@ func NewWebServer() *WebServer {
 	if cfg, err := common.LoadDotfileConfig(w.ServeFolder); err == nil {
 		w.VueJSHistoryMode = cfg.HistoryMode
 		w.RedirectRoutes = cfg.RedirectRoutes
+		w.HeaderMap = cfg.HeaderMap
+		w.TemplateMap = cfg.TemplateMap
+
+		if w.HeaderMap != nil {
+			w.HeaderMapEnabled = true
+		}
 	}
 	return w
 }
@@ -128,15 +134,19 @@ func (w *WebServer) LoadTemplateMap() *WebServer {
 	if w.VueJSHistoryMode != true {
 		return w
 	}
-	if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
-		log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
-		return w
+	if w.TemplateMap == nil {
+		if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
+			log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
+			return w
+		}
+		configMap, err := common.LoadMapConfig(w.TemplateMapPath)
+		if err != nil {
+			log.Panicf("[fatal] Error template map: %v\n", err)
+		}
+		w.TemplateMap = configMap
 	}
-	configMap, err := common.LoadMapConfig(w.TemplateMapPath)
-	if err != nil {
-		log.Panicf("[fatal] Error template map: %v\n", err)
-	}
-	w.handler.TemplateMap = common.EvaluateEnvFromMap(configMap)
+	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap)
+	w.handler.TemplateMap = w.TemplateMap
 	return w
 }
 
@@ -151,12 +161,19 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 	if w.HeaderMapEnabled == false {
 		return w
 	}
-	headerMap, err := common.LoadHeaderMapConfig(w.HeaderMapPath)
-	if err != nil {
-		panic(err)
+	if w.HeaderMap == nil {
+		if _, err := os.Stat(w.HeaderMapPath); os.IsNotExist(err) {
+			log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
+			return w
+		}
+		headerMap, err := common.LoadHeaderMapConfig(w.HeaderMapPath)
+		if err != nil {
+			panic(err)
+		}
+		w.HeaderMap = headerMap
 	}
-	headerMap = common.EvaluateEnvFromHeaderMap(headerMap)
-	w.handler.HeaderMap = headerMap
+	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap)
+	w.handler.HeaderMap = w.HeaderMap
 	return w
 }
 

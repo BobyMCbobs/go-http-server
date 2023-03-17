@@ -38,6 +38,9 @@ func (h *Handler) serveHandlerVuejsHistoryMode() http.Handler {
 	handler := http.FileServer(http.Dir(h.ServeFolder))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if h.HeaderMapEnabled == true {
+			w = common.WriteHeadersToResponse(w, h.HeaderMap)
+		}
 		isDisallowed := false
 		for _, f := range fileServeDisallowList {
 			if match, _ := path.Match(f, req.URL.Path); match {
@@ -59,9 +62,6 @@ func (h *Handler) serveHandlerVuejsHistoryMode() http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if h.HeaderMapEnabled == true {
-			w = common.WriteHeadersToResponse(w, h.HeaderMap)
-		}
 		if err := tmpl.Execute(w, h.TemplateMap); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -74,15 +74,15 @@ func (h *Handler) serveHandlerStandard() http.Handler {
 	handler := http.FileServer(http.Dir(h.ServeFolder))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if h.HeaderMapEnabled == true {
+			w = common.WriteHeadersToResponse(w, h.HeaderMap)
+		}
 		isDisallowed := false
 		for _, f := range fileServeDisallowList {
 			if match, _ := path.Match(f, req.URL.Path); match {
 				isDisallowed = true
 				break
 			}
-		}
-		if h.HeaderMapEnabled == true {
-			w = common.WriteHeadersToResponse(w, h.HeaderMap)
 		}
 		if _, err := os.Stat(path.Join(h.ServeFolder, req.URL.Path)); err != nil || isDisallowed {
 			req.URL.Path = h.Error404FilePath
