@@ -94,6 +94,7 @@ func NewWebServer() *WebServer {
 		if w.HeaderMap != nil {
 			w.HeaderMapEnabled = true
 		}
+		w.Error404FilePath = cfg.Error404FilePath
 	}
 	return w
 }
