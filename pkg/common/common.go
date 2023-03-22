@@ -241,10 +241,11 @@ func Logging(next http.Handler) http.Handler {
 // DotfileConfig ...
 // dotfiles found in the web root
 type DotfileConfig struct {
-	HeaderMap      map[string][]string `json:"headerMap"`
-	HistoryMode    bool                `json:"historyMode"`
-	RedirectRoutes map[string]string   `json:"redirectRoutes"`
-	TemplateMap    map[string]string   `json:"templateMap"`
+	HeaderMap        map[string][]string `json:"headerMap"`
+	HistoryMode      bool                `json:"historyMode"`
+	RedirectRoutes   map[string]string   `json:"redirectRoutes"`
+	TemplateMap      map[string]string   `json:"templateMap"`
+	Error404FilePath string              `json:"error404FilePath"`
 }
 
 // LoadDotfileConfig ...
