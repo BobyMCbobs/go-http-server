@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -112,7 +113,13 @@ func (h *Handler) ServeHandler() (handler http.Handler) {
 func (h *Handler) ServeStandardRedirect(from string, to string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// TODO revisit disallowing certain paths like '/' or ''
+		toURL, err := url.Parse(to)
+		if err != nil {
+			log.Printf("Unable to parse redirection destination URL '%v' for route '%v'\n", to, from)
+			return
+		}
+		toURL.RawQuery = req.URL.Query().Encode()
 		log.Printf("redirecting '%v' -> '%v'\n", from, to)
-		http.Redirect(w, req, to, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, toURL.String(), http.StatusTemporaryRedirect)
 	})
 }
