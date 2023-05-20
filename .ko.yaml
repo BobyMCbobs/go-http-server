@@ -14,3 +14,10 @@ builds:
   - -X gitlab.com/BobyMCbobs/go-http-server/pkg/common.AppBuildHash={{ .Env.APP_BUILD_HASH }}
   - -X gitlab.com/BobyMCbobs/go-http-server/pkg/common.AppBuildDate={{ .Env.APP_BUILD_DATE }}
   - -X gitlab.com/BobyMCbobs/go-http-server/pkg/common.AppBuildMode={{ .Env.APP_BUILD_MODE }}
+
+defaultPlatforms:
+- linux/arm64
+- linux/arm/v6
+- linux/riscv64
+- linux/amd64
+- linux/386

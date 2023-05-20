@@ -14,9 +14,9 @@ variables:
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
   IMAGE_KO: ghcr.io/ko-build/ko:v0.13.0
-  IMAGE_ALPINE: docker.io/alpine:3.15
-  IMAGE_HELM: cgr.dev/chainguard/helm:3
   IMAGE_PYTHON: python:3.8-buster
+  VERSION_COSIGN: v2.0.2
+  COSIGN_YES: "true"
 
 .image-set-build-env: &image-set-build-env |
   echo "Commit made on '${CI_COMMIT_TIMESTAMP}'"
@@ -31,26 +31,36 @@ variables:
     export IMAGE_DESTINATIONS="$APP_BUILD_VERSION"
   fi
 
+.setup-cosign: &setup-cosign |
+  curl -L https://github.com/sigstore/cosign/releases/download/$VERSION_COSIGN/cosign-linux-amd64  -o /usr/local/bin/cosign
+  chmod +x /usr/local/bin/cosign
+
 build-container:
   stage: build
   image:
     name: $IMAGE_KO
     entrypoint: [""]
   retry: 2
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: "sigstore"
   variables:
     KO_DOCKER_REPO: "$CI_REGISTRY_IMAGE"
   before_script:
     - set -x
     - export KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
     - ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
+    - *setup-cosign
     - *image-set-build-env
   script:
     - |
-      ko publish \
+      IMAGE="$(ko publish \
       --bare \
-      --platform all \
       --tags "${IMAGE_DESTINATIONS}" \
-      .
+      .)"
+    - cosign sign --recursive -y "$IMAGE"
+    - cosign download sbom $IMAGE > /tmp/sbom-spdx.json
+    - cosign attest -y --recursive --predicate /tmp/sbom-spdx.json $IMAGE
 
 spell_check:
   stage: lint
