@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 
 	"sigs.k8s.io/yaml"
 )
@@ -112,7 +114,7 @@ func GetVuejsHistoryMode() (output bool) {
 // GetEnableGZIP ...
 // Return whether we should handle GZIP.
 func GetEnableGZIP() (enable bool) {
-	return GetEnvOrDefault("APP_HANDLE_GZIP", "false") == "true"
+	return GetEnvOrDefault("APP_HANDLE_GZIP", "true") == "true"
 }
 
 // GetHeaderSetEnable ...
@@ -143,6 +145,20 @@ func GetRedirectRoutesEnabled() (output bool) {
 // return if redirecting routes should be enabled
 func GetRedirectRoutesPath() (output string) {
 	return GetEnvOrDefault("APP_REDIRECT_ROUTES_PATH", "./redirects.yaml")
+}
+
+func GetHTTPAllowedOrigins() (origins []string) {
+	for _, o := range strings.Split(GetEnvOrDefault("APP_HTTP_ALLOWED_ORIGINS", "*"), ",") {
+		if o == "" {
+			continue
+		}
+		u, err := url.Parse(o)
+		if err != nil {
+			log.Panicf("error: failed to parse URL '%v' from allowed origins; %v", o, err)
+		}
+		origins = append(origins, u.String())
+	}
+	return origins
 }
 
 // GetEnvOrDefault ...
