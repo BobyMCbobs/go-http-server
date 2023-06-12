@@ -117,6 +117,7 @@ func NewWebServer() *WebServer {
 			w.Error404FilePath = common.Get404PageFileName()
 		}
 	}
+
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
 	for _, m := range w.ExtraMiddleware {
@@ -140,7 +141,7 @@ func NewWebServer() *WebServer {
 
 	for _, h := range w.ExtraHandlers {
 		if h.Path == "/" {
-			log.Println("Warning: path / not allowed for extra handlers")
+			log.Println("Warning: path '/' not allowed for extra handlers")
 			continue
 		}
 		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
@@ -160,10 +161,11 @@ func NewWebServer() *WebServer {
 
 	// Serve regular HTTP
 	w.server = &http.Server{
-		Handler:      c.Handler(router),
-		Addr:         w.AppPort,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		Handler:           c.Handler(router),
+		Addr:              w.AppPort,
+		ReadHeaderTimeout: 2 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
 	}
 	if w.HTTPSPortEnabled {
 		w.LoadTLS()
@@ -307,8 +309,10 @@ func (w *WebServer) Listen() {
 			log.Panicf("[fatal] Error creating TLS listener: %v\n", err)
 		}
 		go func() {
-			log.Println("Listening on", w.HTTPSPort)
-			log.Println(w.serverTLS.Serve(listener))
+			log.Println("Listening TLS on", w.HTTPSPort)
+			if err := w.serverTLS.Serve(listener); err != nil && err != http.ErrServerClosed {
+				log.Fatal(err)
+			}
 		}()
 	}
 
