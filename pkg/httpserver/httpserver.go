@@ -1,15 +1,17 @@
 package httpserver
 
 import (
+	"context"
 	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 
 	"gitlab.com/BobyMCbobs/go-http-server/pkg/common"
@@ -28,6 +30,7 @@ type ExtraHandler struct {
 // WebServer configures the runtime
 type WebServer struct {
 	AppPort               string
+	HTTPAllowedOrigins    []string
 	EnvFile               string
 	Error404FilePath      string
 	ExtraHandlers         []*ExtraHandler
@@ -55,10 +58,15 @@ type WebServer struct {
 	TemplateMapEnabled    bool
 	TemplateMapPath       string
 	VueJSHistoryMode      bool
-	handler               *handlers.Handler
+
+	handler   *handlers.Handler
+	server    *http.Server
+	serverTLS *http.Server
 }
 
 // NewWebServer returns a default WebServer, as per environment configuration
+//
+// TODO clean up function
 func NewWebServer() *WebServer {
 	w := &WebServer{
 		AppPort:               common.GetAppPort(),
@@ -68,6 +76,7 @@ func NewWebServer() *WebServer {
 		HTTPPort:              common.GetAppPort(),
 		HTTPSPort:             common.GetAppHTTPSPort(),
 		HTTPSPortEnabled:      common.GetAppEnableHTTPS(),
+		HTTPAllowedOrigins:    common.GetHTTPAllowedOrigins(),
 		HeaderMapEnabled:      common.GetHeaderSetEnable(),
 		HeaderMapPath:         common.GetHeaderMapPath(),
 		HealthPort:            common.GetAppHealthPort(),
@@ -85,17 +94,83 @@ func NewWebServer() *WebServer {
 		VueJSHistoryMode:      common.GetVuejsHistoryMode(),
 		handler:               &handlers.Handler{},
 	}
-	if cfg, err := common.LoadDotfileConfig(w.ServeFolder); err == nil {
+	cfg, err := common.LoadDotfileConfig(w.ServeFolder)
+	if err != nil {
+		log.Printf("error loading dotfile config: %v\n", err)
+	} else {
 		w.VueJSHistoryMode = cfg.HistoryMode
-		w.RedirectRoutes = cfg.RedirectRoutes
-		w.HeaderMap = cfg.HeaderMap
-		w.TemplateMap = cfg.TemplateMap
+		if cfg.RedirectRoutes != nil {
+			w.RedirectRoutes = cfg.RedirectRoutes
+		}
+		if cfg.HeaderMap != nil {
+			w.HeaderMap = cfg.HeaderMap
+		}
+		if cfg.TemplateMap != nil {
+			w.TemplateMap = cfg.TemplateMap
+		}
 
 		if w.HeaderMap != nil {
 			w.HeaderMapEnabled = true
 		}
 		w.Error404FilePath = cfg.Error404FilePath
+		if w.Error404FilePath == "" {
+			w.Error404FilePath = common.Get404PageFileName()
+		}
 	}
+	router := mux.NewRouter().StrictSlash(false)
+	router.Use(common.Logging)
+	for _, m := range w.ExtraMiddleware {
+		router.Use(m)
+	}
+	if w.RedirectRoutesEnabled {
+		if w.RedirectRoutes == nil {
+			redirectRoutes, err := common.LoadRedirectRoutesConfig(w.RedirectRoutesPath)
+			if err != nil {
+				log.Println("Warning: failed to load redirect routes")
+			}
+			w.RedirectRoutes = redirectRoutes
+		}
+		for from, to := range w.RedirectRoutes {
+			router.HandleFunc(from, w.handler.ServeStandardRedirect(from, to)).Methods(http.MethodGet)
+		}
+	}
+
+	w.LoadHeaderMap()
+	w.LoadTemplateMap()
+
+	for _, h := range w.ExtraHandlers {
+		if h.Path == "/" {
+			log.Println("Warning: path / not allowed for extra handlers")
+			continue
+		}
+		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
+	}
+	w.handler = w.newHandlerForWebServer()
+
+	fullServePath, _ := filepath.Abs(w.ServeFolder)
+	log.Printf("Serving folder '%v'\n", fullServePath)
+	router.PathPrefix("/").Handler(w.handler.ServeHandler())
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   w.HTTPAllowedOrigins,
+		AllowedHeaders:   []string{"*"},
+		AllowedMethods:   []string{"GET"},
+		AllowCredentials: true,
+	})
+
+	// Serve regular HTTP
+	w.server = &http.Server{
+		Handler:      c.Handler(router),
+		Addr:         w.AppPort,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	if w.HTTPSPortEnabled {
+		w.LoadTLS()
+		*w.serverTLS = *w.server
+		w.serverTLS.TLSConfig = w.TLSConfig
+	}
+
 	return w
 }
 
@@ -213,87 +288,41 @@ func (w *WebServer) NewMetricsFromWebServer() *metrics.Metrics {
 
 // Listen starting listening according to the configuration
 func (w *WebServer) Listen() {
-	// bring up the API
-	forever := make(chan bool)
-
-	_ = godotenv.Load(w.EnvFile)
-
 	go w.NewMetricsFromWebServer().Handle()
 
-	router := mux.NewRouter().StrictSlash(false)
-	router.Use(common.Logging)
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	for _, m := range w.ExtraMiddleware {
-		router.Use(m)
-	}
-	if w.RedirectRoutesEnabled {
-		if w.RedirectRoutes == nil {
-			redirectRoutes, err := common.LoadRedirectRoutesConfig(w.RedirectRoutesPath)
-			if err != nil {
-				log.Println("Warning: failed to load redirect routes")
-			}
-			w.RedirectRoutes = redirectRoutes
-		}
-		for from, to := range w.RedirectRoutes {
-			router.HandleFunc(from, w.handler.ServeStandardRedirect(from, to)).Methods(http.MethodGet)
-		}
-	}
-
-	w.LoadHeaderMap()
-	w.LoadTemplateMap()
-
-	for _, h := range w.ExtraHandlers {
-		if h.Path == "/" {
-			log.Println("Warning: path / not allowed for extra handlers")
-			continue
-		}
-		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
-	}
-	w.handler = w.newHandlerForWebServer()
-
-	fullServePath, _ := filepath.Abs(w.ServeFolder)
-	log.Printf("Serving folder '%v'\n", fullServePath)
-	router.PathPrefix("/").Handler(w.handler.ServeHandler())
-
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedHeaders:   []string{"*"},
-		AllowedMethods:   []string{"GET"},
-		AllowCredentials: true,
-	})
-
-	// Serve regular HTTP
-	srv := &http.Server{
-		Handler:      c.Handler(router),
-		Addr:         w.AppPort,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
 	go func() {
 		log.Println("Listening on", w.AppPort)
-		log.Fatal(srv.ListenAndServe())
+		if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
 	}()
 
 	// Optionally, serve HTTPS
 	if w.HTTPSPortEnabled {
-		// Load certs
-		w.LoadTLS()
-		// Create TLS listener and server
-		srvTLS := &http.Server{
-			Handler:      c.Handler(router),
-			Addr:         w.HTTPSPort,
-			WriteTimeout: 15 * time.Second,
-			ReadTimeout:  15 * time.Second,
-			TLSConfig:    w.TLSConfig,
-		}
 		listener, err := tls.Listen("tcp", w.HTTPSPort, w.TLSConfig)
 		if err != nil {
 			log.Panicf("[fatal] Error creating TLS listener: %v\n", err)
 		}
 		go func() {
 			log.Println("Listening on", w.HTTPSPort)
-			log.Println(srvTLS.Serve(listener))
+			log.Println(w.serverTLS.Serve(listener))
 		}()
 	}
-	<-forever
+
+	<-done
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := w.server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server didn't exit gracefully %v", err)
+	}
+	if w.HTTPSPortEnabled {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := w.serverTLS.Shutdown(ctx); err != nil {
+			log.Fatalf("Server didn't exit gracefully %v", err)
+		}
+	}
 }
