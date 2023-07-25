@@ -39,7 +39,7 @@ func (h *Handler) serveHandlerVuejsHistoryMode() http.Handler {
 	handler := http.FileServer(http.Dir(h.ServeFolder))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if h.HeaderMapEnabled == true {
+		if h.HeaderMapEnabled {
 			w = common.WriteHeadersToResponse(w, h.HeaderMap)
 		}
 		isDisallowed := false
@@ -75,7 +75,7 @@ func (h *Handler) serveHandlerStandard() http.Handler {
 	handler := http.FileServer(http.Dir(h.ServeFolder))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if h.HeaderMapEnabled == true {
+		if h.HeaderMapEnabled {
 			w = common.WriteHeadersToResponse(w, h.HeaderMap)
 		}
 		isDisallowed := false
@@ -97,7 +97,7 @@ func (h *Handler) serveHandlerStandard() http.Handler {
 // serves a folder
 func (h *Handler) ServeHandler() (handler http.Handler) {
 	switch {
-	case h.VueJSHistoryMode == true:
+	case h.VueJSHistoryMode:
 		handler = h.serveHandlerVuejsHistoryMode()
 	default:
 		handler = h.serveHandlerStandard()

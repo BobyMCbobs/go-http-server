@@ -1,9 +1,16 @@
 package metrics
 
 import (
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Metrics configures the metrics handler
@@ -15,11 +22,33 @@ type Metrics struct {
 // Handle ...
 // HTTP handler for metrics
 func (m *Metrics) Handle() {
-	if m.Enabled == false {
+	if !m.Enabled {
 		return
 	}
 
-	http.Handle("/metrics", promhttp.Handler())
-	log.Printf("Metrics listening on %v\n", m.Port)
-	http.ListenAndServe(m.Port, nil)
+	router := mux.NewRouter().StrictSlash(true)
+	r := router.Handle("/metrics", promhttp.Handler())
+	server := &http.Server{
+		Handler:           r.GetHandler(),
+		Addr:              m.Port,
+		WriteTimeout:      15 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	log.Printf("Metrics listening on %v\n", server.Addr)
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	<-done
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server didn't exit gracefully %v", err)
+	}
 }

@@ -147,6 +147,8 @@ func GetRedirectRoutesPath() (output string) {
 	return GetEnvOrDefault("APP_REDIRECT_ROUTES_PATH", "./redirects.yaml")
 }
 
+// GetHTTPAllowedOrigins ...
+// returns a list of specified allowed origins for configuring CORS
 func GetHTTPAllowedOrigins() (origins []string) {
 	for _, o := range strings.Split(GetEnvOrDefault("APP_HTTP_ALLOWED_ORIGINS", "*"), ",") {
 		if o == "" {
