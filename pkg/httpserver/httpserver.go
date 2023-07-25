@@ -167,8 +167,13 @@ func NewWebServer() *WebServer {
 	}
 	if w.HTTPSPortEnabled {
 		w.LoadTLS()
-		*w.serverTLS = *w.server
-		w.serverTLS.TLSConfig = w.TLSConfig
+		w.serverTLS = &http.Server{
+			Handler:      c.Handler(router),
+			Addr:         w.AppPort,
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+			TLSConfig:    w.TLSConfig,
+		}
 	}
 
 	return w
@@ -201,13 +206,12 @@ func (w *WebServer) LoadTLS() *WebServer {
 		log.Panicf("[fatal] Error loading certs: %v\n", err)
 	}
 	w.TLSConfig.Certificates[0] = loadedCert
-	w.TLSConfig.BuildNameToCertificate()
 	return w
 }
 
 // LoadTemplateMap loads the template map from the path
 func (w *WebServer) LoadTemplateMap() *WebServer {
-	if w.VueJSHistoryMode != true {
+	if w.VueJSHistoryMode {
 		return w
 	}
 	if w.TemplateMap == nil {
@@ -234,7 +238,7 @@ func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
 
 // LoadHeaderMap loads the header map from the path
 func (w *WebServer) LoadHeaderMap() *WebServer {
-	if w.HeaderMapEnabled == false {
+	if !w.HeaderMapEnabled {
 		return w
 	}
 	if w.HeaderMap == nil {
