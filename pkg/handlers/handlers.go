@@ -77,7 +77,7 @@ func serveHandlerStandard(publicDir string) http.Handler {
 		if common.GetHeaderSetEnable() == "true" {
 			w = common.WriteHeadersToResponse(w, headerMap)
 		}
-		if _, err := os.Stat(path.Join(common.GetServeFolder(), req.URL.Path)); err != nil {
+		if _, err := os.Stat(path.Join(common.GetServeFolder(), path.Clean(req.URL.Path+"/"))); err != nil {
 			w.WriteHeader(404)
 			http.ServeFile(w, req, path.Join(common.GetServeFolder(), common.Get404PageFileName()))
 			return
