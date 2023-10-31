@@ -57,6 +57,41 @@ func serveHandlerVuejsHistoryMode(publicDir string) http.Handler {
 	})
 }
 
+func pageExistsByPath(p string) bool {
+	const indexPage = "/index.html"
+	f := p
+	if !strings.HasPrefix(f, "/") {
+		f = "/" + f
+	}
+	f = path.Clean(f)
+	if strings.HasSuffix(p, indexPage) {
+		return true // Don't actually know if it exists, but this will be redirected by the file server
+	}
+	stat, err := os.Stat(path.Join(common.GetServeFolder(), f))
+	if err != nil {
+		return false
+	}
+	if stat.IsDir() {
+		if p[len(p)-1] != '/' {
+			return true // Don't actually know if it exists, but this will be redirected by the file server
+		}
+	} else {
+		if p[len(p)-1] == '/' {
+			return true // Don't actually know if it exists, but this will be redirected by the file server
+		}
+	}
+	if stat.IsDir() {
+		if p == "" || p[len(p)-1] != '/' {
+			return true // Don't actually know if it exists, but this will be redirected by the file server
+		}
+		// Does index.html exist in the directory?
+		index := strings.TrimSuffix(f, "/") + indexPage
+		stat, err := os.Stat(path.Join(common.GetServeFolder(), index))
+		return err == nil && !stat.IsDir()
+	}
+	return true
+}
+
 // serveHandlerStandard ...
 // handles sending the serve folder
 func serveHandlerStandard(publicDir string) http.Handler {
@@ -77,7 +112,7 @@ func serveHandlerStandard(publicDir string) http.Handler {
 		if common.GetHeaderSetEnable() == "true" {
 			w = common.WriteHeadersToResponse(w, headerMap)
 		}
-		if _, err := os.Stat(path.Join(common.GetServeFolder(), path.Clean(req.URL.Path+"/"))); err != nil {
+		if !pageExistsByPath(req.URL.Path) {
 			w.WriteHeader(404)
 			http.ServeFile(w, req, path.Join(common.GetServeFolder(), common.Get404PageFileName()))
 			return
