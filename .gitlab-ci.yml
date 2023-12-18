@@ -9,22 +9,17 @@ include:
   template: Dependency-Scanning.gitlab-ci.yml
 
 variables:
-  REGISTRIES: "$CI_REGISTRY"
-  ARCH_DEFAULT: "amd64"
-  ARCHES: amd64 arm64
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
-  IMAGE_KO: ghcr.io/ko-build/ko:v0.14.1
-  IMAGE_GOLANG_ALPINE: docker.io/golang:1.20.5-alpine3.18
+  IMAGE_GOLANG_ALPINE: docker.io/golang:1.21.5-alpine3.18@sha256:9390a996e9f957842f07dff1e9661776702575dd888084e72d86eaa382ad56e3
   IMAGE_PYTHON: python:3.8-buster
-  IMAGE_GOLANGCI_LINT: docker.io/golangci/golangci-lint:v1.53.3
-  VERSION_COSIGN: v2.0.2
+  IMAGE_GOLANGCI_LINT: docker.io/golangci/golangci-lint:v1.53.3@sha256:1e0e2867b387bf68762427db499a963e43582b06819992db205fc31daa75ceea
   COSIGN_YES: "true"
 
 .image-set-build-env: &image-set-build-env |
   echo "Commit made on '${CI_COMMIT_TIMESTAMP}'"
   export APP_BUILD_HASH="$CI_COMMIT_SHORT_SHA"
-  export APP_BUILD_DATE=$(date --date="${CI_COMMIT_TIMESTAMP//[T+]/ }" '+%Y.%m.%d.%H%M')
+  export APP_BUILD_DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d.%H%M')
   export APP_BUILD_VERSION=0.0.0
   export APP_BUILD_MODE=development
   export IMAGE_DESTINATIONS="latest"
@@ -34,9 +29,8 @@ variables:
     export IMAGE_DESTINATIONS="$APP_BUILD_VERSION"
   fi
 
-.setup-cosign: &setup-cosign |
-  curl -L https://github.com/sigstore/cosign/releases/download/$VERSION_COSIGN/cosign-linux-amd64  -o /usr/local/bin/cosign
-  chmod +x /usr/local/bin/cosign
+.setup-testing-repo: &setup-testing-repo |
+  echo 'https://dl-cdn.alpinelinux.org/alpine/edge/testing' | tee -a /etc/apk/repositories
 
 build-backend-smoketest:
   stage: build
@@ -47,7 +41,7 @@ build-backend-smoketest:
 build-container:
   stage: build
   image:
-    name: $IMAGE_KO
+    name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   retry: 2
   id_tokens:
@@ -57,9 +51,10 @@ build-container:
     KO_DOCKER_REPO: "$CI_REGISTRY_IMAGE"
   before_script:
     - set -x
+    - apk add --no-cache curl cosign ko
     - export KO_DOCKER_REPO="$(echo ${KO_DOCKER_REPO} | tr '[:upper:]' '[:lower:]')"
     - ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
-    - *setup-cosign
+    - *setup-testing-repo
     - *image-set-build-env
   script:
     - |
@@ -74,7 +69,7 @@ build-container:
 spell_check:
   stage: lint
   image:
-    name: $IMAGE_KO
+    name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   allow_failure: true
   before_script:
@@ -85,7 +80,7 @@ spell_check:
 lint_backend:
   stage: lint
   image:
-    name: $IMAGE_KO
+    name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   allow_failure: true
   before_script:
