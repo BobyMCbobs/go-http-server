@@ -148,7 +148,7 @@ pages:
     paths:
     - public
   only:
-    - master
+    - main
 
 conform:
   stage: conform
