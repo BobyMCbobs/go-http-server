@@ -102,7 +102,7 @@ func GetServeFolder() (output string) {
 // GetTemplateMapPath ...
 // return the path of the template map
 func GetTemplateMapPath() (output string) {
-	return GetEnvOrDefault("APP_TEMPLATE_MAP_PATH", "./map.yaml")
+	return GetEnvOrDefault("APP_TEMPLATE_MAP_PATH", "./template-map.yaml")
 }
 
 // GetVuejsHistoryMode ...
@@ -175,17 +175,20 @@ func GetEnvOrDefault(envName string, defaultValue string) (output string) {
 
 // EvaluateEnvFromMap ...
 // evaluates environment variables from map[string]string{}
-func EvaluateEnvFromMap(input map[string]string) (output map[string]string) {
+func EvaluateEnvFromMap(input map[string]string, fromEnv bool) (output map[string]string) {
 	output = map[string]string{}
 	for index, value := range input {
-		output[index] = os.ExpandEnv(value)
+		if fromEnv {
+			value = os.ExpandEnv(value)
+		}
+		output[index] = value
 	}
 	return output
 }
 
-// LoadMapConfig ...
+// LoadTemplateMapConfig ...
 // loads map config as YAML
-func LoadMapConfig(path string) (output map[string]string, err error) {
+func LoadTemplateMapConfig(path string) (output map[string]string, err error) {
 	mapBytes, err := os.ReadFile(path)
 	if err != nil {
 		return output, fmt.Errorf("Failed to load map file: %v", err.Error())
@@ -199,11 +202,15 @@ func LoadMapConfig(path string) (output map[string]string, err error) {
 
 // EvaluateEnvFromHeaderMap ...
 // evaluates environment variables from map[string][]string
-func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]string) {
+func EvaluateEnvFromHeaderMap(input map[string][]string, fromEnv bool) (output map[string][]string) {
 	output = map[string][]string{}
 	for key, value := range input {
 		for _, valueSub := range value {
-			output[key] = append(output[key], os.ExpandEnv(valueSub))
+			value := valueSub
+			if fromEnv {
+				value = os.ExpandEnv(valueSub)
+			}
+			output[key] = append(output[key], value)
 		}
 	}
 	return output
@@ -212,6 +219,9 @@ func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]st
 // LoadHeaderMapConfig ...
 // loads map config as YAML
 func LoadHeaderMapConfig(path string) (output map[string][]string, err error) {
+	if _, err := os.Stat(path); err != nil {
+		return nil, nil
+	}
 	mapBytes, err := os.ReadFile(path)
 	if err != nil {
 		return map[string][]string{}, fmt.Errorf("Failed to load map file: %v", err.Error())
@@ -272,11 +282,11 @@ func Logging(next http.Handler) http.Handler {
 // DotfileConfig ...
 // dotfiles found in the web root
 type DotfileConfig struct {
+	Error404FilePath string              `json:"error404FilePath"`
 	HeaderMap        map[string][]string `json:"headerMap"`
 	HistoryMode      bool                `json:"historyMode"`
 	RedirectRoutes   map[string]string   `json:"redirectRoutes"`
 	TemplateMap      map[string]string   `json:"templateMap"`
-	Error404FilePath string              `json:"error404FilePath"`
 }
 
 // LoadDotfileConfig ...
@@ -300,6 +310,9 @@ func LoadDotfileConfig(serveFolder string) (cfg *DotfileConfig, err error) {
 // LoadRedirectRoutesConfig ...
 // loads map config as YAML
 func LoadRedirectRoutesConfig(path string) (output map[string]string, err error) {
+	if _, err := os.Stat(path); err != nil {
+		return nil, nil
+	}
 	mapBytes, err := os.ReadFile(path)
 	if err != nil {
 		return map[string]string{}, fmt.Errorf("Failed to load map file: %v", err.Error())

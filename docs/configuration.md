@@ -10,7 +10,7 @@
 | `APP_PORT_METRICS`                  | The port to bind for metrics traffic                          | `:2112`          |
 | `APP_HTTP_REAL_IP_HEADER`           | The HTTP header to use for real IPs                           | `""`             |
 | `APP_SERVE_FOLDER` / `KO_DATA_PATH` | The local folder path to serve                                | `./site`         |
-| `APP_TEMPLATE_MAP_PATH`             | The path to a template map                                    | `./map.yaml`     |
+| `APP_TEMPLATE_MAP_PATH`             | The path to a template map                                    | `./template-map.yaml`     |
 | `APP_VUEJS_HISTORY_MODE`            | Enable Vuejs history mode path rewriting                      | `false`          |
 | `APP_HEADER_SET_ENABLE`             | Enable header setting for requests                            | `false`          |
 | `APP_HEADER_MAP_PATH`               | The path to the header map                                    | `./headers.yaml` |
@@ -71,9 +71,22 @@ When a file called `.ghs.yaml` exists in the serve folder, it will be loaded in 
 Current values for configuration are
 
 ```yaml
-historyMode: bool
-redirectRoutes: map[string]string
+error404FilePath: string
+headerMap:        map[string][]string
+historyMode:      bool
+redirectRoutes:   map[string]string
+templateMap:      map[string]string
 ```
 
 for overriding the value set by the server.
+
+## Fields
+
+The dotfile config supports a smaller and limited subset of the go-http-server settings. This is to ensure that in a self-service environment, certain configs cannot be set. The following fields are:
+
+**error404FilePath**: the path to a html document to serve the file not found message
+**headerMap**: a key+value-array pair to set headers. Values are env-evaluated (e.g: `X-Something-Important: ["Value-Here", "${SOME_ENV}"]`)
+**historyMode**: when set, rewrites all requests with the exception of assets to _index.html_
+**redirectRoutes**: a key+value pair to direct paths URLs to other URLs. (e.g: `/a: /b`)
+**templateMap**: combined with `historyMode`, use Go html templating to replace Go templating expressions in an _index.html_
 
