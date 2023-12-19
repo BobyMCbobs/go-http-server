@@ -88,6 +88,12 @@ lint_backend:
   script:
     - golint -set_exit_status ./...
 
+gotest:
+  stage: lint
+  image: $IMAGE_GOLANG_ALPINE
+  script:
+    - go test -cover -v ./...
+
 govet:
   stage: lint
   image: $IMAGE_GOLANG_ALPINE

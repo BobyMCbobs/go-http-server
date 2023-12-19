@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -60,12 +62,17 @@ func (h *Handler) serveHandlerVuejsHistoryMode() http.Handler {
 		indexPath := path.Join(h.ServeFolder, "/index.html")
 		tmpl, err := template.ParseFiles(indexPath)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Println("warning: unable to parse template html:", err)
+			http.Error(w, "500 internal error", http.StatusInternalServerError)
 			return
 		}
-		if err := tmpl.Execute(w, h.TemplateMap); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		var buf bytes.Buffer
+		defer buf.Reset()
+		if err := tmpl.ExecuteTemplate(&buf, tmpl.Name(), h.TemplateMap); err != nil {
+			log.Println("warning: unable to execute template html:", err)
+			http.Error(w, "500 internal error", http.StatusInternalServerError)
 		}
+		fmt.Fprint(w, &buf)
 	})
 }
 
@@ -86,8 +93,9 @@ func (h *Handler) serveHandlerStandard() http.Handler {
 			}
 		}
 		if _, err := os.Stat(path.Join(h.ServeFolder, req.URL.Path)); err != nil || isDisallowed {
-			req.URL.Path = h.Error404FilePath
-			req.RequestURI = req.URL.Path
+			w.WriteHeader(http.StatusNotFound)
+			http.ServeFile(w, req, path.Join(h.ServeFolder, h.Error404FilePath))
+			return
 		}
 		handler.ServeHTTP(w, req)
 	})
@@ -116,6 +124,7 @@ func (h *Handler) ServeStandardRedirect(from string, to string) http.HandlerFunc
 		toURL, err := url.Parse(to)
 		if err != nil {
 			log.Printf("Unable to parse redirection destination URL '%v' for route '%v'\n", to, from)
+			http.Error(w, "fatal: unable to redirect to destination URL", http.StatusInternalServerError)
 			return
 		}
 		toURL.RawQuery = req.URL.Query().Encode()
