@@ -59,9 +59,10 @@ type WebServer struct {
 	TemplateMapPath       string
 	VueJSHistoryMode      bool
 
-	handler   *handlers.Handler
-	server    *http.Server
-	serverTLS *http.Server
+	handler       *handlers.Handler
+	server        *http.Server
+	serverTLS     *http.Server
+	dotfileLoaded bool
 }
 
 // NewWebServer returns a default WebServer, as per environment configuration
@@ -98,6 +99,7 @@ func NewWebServer() *WebServer {
 	if err != nil {
 		log.Printf("error loading dotfile config: %v\n", err)
 	} else if cfg != nil {
+		w.dotfileLoaded = true
 		w.VueJSHistoryMode = cfg.HistoryMode
 		if cfg.RedirectRoutes != nil {
 			w.RedirectRoutes = cfg.RedirectRoutes
@@ -210,37 +212,31 @@ func (w *WebServer) LoadTLS() *WebServer {
 
 // LoadTemplateMap loads the template map from the path
 func (w *WebServer) LoadTemplateMap() *WebServer {
-	if w.VueJSHistoryMode {
-		return w
-	}
-	if w.TemplateMap == nil {
+	if w.TemplateMap == nil && !w.dotfileLoaded {
 		if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
 			log.Printf("[notice] history mode templating is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
 			return w
 		}
-		configMap, err := common.LoadMapConfig(w.TemplateMapPath)
+		configMap, err := common.LoadTemplateMapConfig(w.TemplateMapPath)
 		if err != nil {
 			log.Panicf("[fatal] Error template map: %v\n", err)
 		}
 		w.TemplateMap = configMap
 	}
-	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap)
+	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap, !w.dotfileLoaded)
 	w.handler.TemplateMap = w.TemplateMap
 	return w
 }
 
 // SetTemplateMap set the template map
 func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
-	w.handler.TemplateMap = common.EvaluateEnvFromMap(input)
+	w.handler.TemplateMap = common.EvaluateEnvFromMap(input, !w.dotfileLoaded)
 	return w
 }
 
 // LoadHeaderMap loads the header map from the path
 func (w *WebServer) LoadHeaderMap() *WebServer {
-	if !w.HeaderMapEnabled {
-		return w
-	}
-	if w.HeaderMap == nil {
+	if w.HeaderMap == nil && !w.dotfileLoaded {
 		if _, err := os.Stat(w.HeaderMapPath); os.IsNotExist(err) {
 			log.Printf("[notice] header templating is enabled, header template maps (currently set to '%v') can also be used\n", w.HeaderMapPath)
 			return w
@@ -251,14 +247,14 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 		}
 		w.HeaderMap = headerMap
 	}
-	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap)
+	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap, !w.dotfileLoaded)
 	w.handler.HeaderMap = w.HeaderMap
 	return w
 }
 
 // SetHeaderMap sets the header map
 func (w *WebServer) SetHeaderMap(input map[string][]string) *WebServer {
-	w.handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input)
+	w.handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input, !w.dotfileLoaded)
 	return w
 }
 

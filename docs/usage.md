@@ -38,12 +38,12 @@ COPY dist /app/dist
 Serve your site using history mode and Go html templating for index.html
 
 ```dockerfile
-FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
-env APP_SERVE_FOLDER=./dist \
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
+ENV APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
-  APP_TEMPLATE_MAP_PATH=/app/map.yaml
+  APP_TEMPLATE_MAP_PATH=/app/template-map.yaml
 COPY dist /app/dist
-COPY templatemap.yaml /app/map.yaml
+COPY template-map.yaml /app/template-map.yaml
 ```
 
 ## Vuejs + template map + headers
@@ -51,15 +51,15 @@ COPY templatemap.yaml /app/map.yaml
 Serve your site using history mode and Go html templating for index.html, with setting headers
 
 ```dockerfile
-FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
-env APP_SERVE_FOLDER=./dist \
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
+ENV APP_SERVE_FOLDER=./dist \
   APP_VUEJS_HISTORY_MODE=true \
-  APP_TEMPLATE_MAP_PATH=/app/map.yaml \
+  APP_TEMPLATE_MAP_PATH=/app/template-map.yaml \
   APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
 COPY dist /app/dist
 COPY headers.yaml /app/headers.yaml
-COPY templatemap.yaml /app/map.yaml
+COPY template-map.yaml /app/template-map.yaml
 ```
 
 # Import and use
