@@ -245,14 +245,27 @@ func GetRequestIP(r *http.Request) (requestIP string) {
 	return headerValue
 }
 
+type statusRecorder struct {
+	http.ResponseWriter
+	Status int
+}
+
+func (r *statusRecorder) WriteHeader(status int) {
+	r.Status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
 // Logging ...
 // a basic middleware for logging
 func Logging(next http.Handler) http.Handler {
 	// log all requests
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestIP := GetRequestIP(r)
-		log.Printf("%v %v %v %v %v %v %#v", r.Method, r.URL, r.Proto, r.Response, requestIP, r.RemoteAddr, r.Header)
-		next.ServeHTTP(w, r)
+		recorder := &statusRecorder{
+			ResponseWriter: w,
+		}
+		next.ServeHTTP(recorder, r)
+		log.Printf("%v %v %v %v %v %v %#v", recorder.Status, r.Method, r.URL, r.Proto, requestIP, r.RemoteAddr, r.Header)
 	})
 }
 
@@ -268,15 +281,18 @@ type DotfileConfig struct {
 
 // LoadDotfileConfig ...
 // loads a .ghs.yaml in the serve folder
-func LoadDotfileConfig(serveFolder string) (cfg DotfileConfig, err error) {
+func LoadDotfileConfig(serveFolder string) (cfg *DotfileConfig, err error) {
 	configPath := path.Join(serveFolder, AppServeFolderConfigName)
+	if _, err := os.Stat(configPath); err != nil {
+		return nil, nil
+	}
 	file, err := os.ReadFile(configPath)
 	if err != nil {
-		return DotfileConfig{}, err
+		return &DotfileConfig{}, err
 	}
 	err = yaml.Unmarshal(file, &cfg)
 	if err != nil {
-		return DotfileConfig{}, err
+		return &DotfileConfig{}, err
 	}
 	return cfg, nil
 }

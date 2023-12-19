@@ -97,7 +97,7 @@ func NewWebServer() *WebServer {
 	cfg, err := common.LoadDotfileConfig(w.ServeFolder)
 	if err != nil {
 		log.Printf("error loading dotfile config: %v\n", err)
-	} else {
+	} else if cfg != nil {
 		w.VueJSHistoryMode = cfg.HistoryMode
 		if cfg.RedirectRoutes != nil {
 			w.RedirectRoutes = cfg.RedirectRoutes
@@ -108,7 +108,6 @@ func NewWebServer() *WebServer {
 		if cfg.TemplateMap != nil {
 			w.TemplateMap = cfg.TemplateMap
 		}
-
 		if w.HeaderMap != nil {
 			w.HeaderMapEnabled = true
 		}
@@ -216,7 +215,7 @@ func (w *WebServer) LoadTemplateMap() *WebServer {
 	}
 	if w.TemplateMap == nil {
 		if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
-			log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
+			log.Printf("[notice] history mode templating is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
 			return w
 		}
 		configMap, err := common.LoadMapConfig(w.TemplateMapPath)
@@ -243,7 +242,7 @@ func (w *WebServer) LoadHeaderMap() *WebServer {
 	}
 	if w.HeaderMap == nil {
 		if _, err := os.Stat(w.HeaderMapPath); os.IsNotExist(err) {
-			log.Printf("[notice] history mode is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
+			log.Printf("[notice] header templating is enabled, header template maps (currently set to '%v') can also be used\n", w.HeaderMapPath)
 			return w
 		}
 		headerMap, err := common.LoadHeaderMapConfig(w.HeaderMapPath)
