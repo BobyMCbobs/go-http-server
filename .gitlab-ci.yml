@@ -152,8 +152,8 @@ pages:
 
 conform:
   stage: conform
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  only:
+    - merge_requests
   image:
     name: docker.io/library/alpine:3.18
     entrypoint: [""]
