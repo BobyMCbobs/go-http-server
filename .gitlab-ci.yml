@@ -1,7 +1,7 @@
 stages:
   - conform
   - test
-  - lint
+  - codequality
   - build
   - pages
 
@@ -33,7 +33,7 @@ variables:
   echo 'https://dl-cdn.alpinelinux.org/alpine/edge/testing' | tee -a /etc/apk/repositories
 
 build-backend-smoketest:
-  stage: build
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   script:
     - go build -o /dev/null .
@@ -67,7 +67,7 @@ build-container:
     - cosign attest -y --recursive --predicate /tmp/sbom-spdx.json $IMAGE
 
 spell_check:
-  stage: lint
+  stage: codequality
   image:
     name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
@@ -78,7 +78,7 @@ spell_check:
     - misspell -error main.go cmd pkg docs k8s-manifests README*
 
 lint_backend:
-  stage: lint
+  stage: codequality
   image:
     name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
@@ -89,25 +89,25 @@ lint_backend:
     - golint -set_exit_status ./...
 
 gotest:
-  stage: lint
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   script:
     - go test -cover -v ./...
 
 govet:
-  stage: lint
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   script:
     - go vet -v ./...
 
 gofmt:
-  stage: lint
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   script:
     - find . -name "*.go" | grep -E -v vendor | xargs gofmt -s -l -d -w -s
 
 goimports:
-  stage: lint
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   before_script:
     - apk add --no-cache git
@@ -121,7 +121,7 @@ goimports:
       fi
 
 golangci-lint:
-  stage: lint
+  stage: codequality
   image:
     name: $IMAGE_GOLANGCI_LINT
     entrypoint: [""]
@@ -129,7 +129,7 @@ golangci-lint:
     - golangci-lint run
 
 govulncheck:
-  stage: lint
+  stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   before_script:
     - go install golang.org/x/vuln/cmd/govulncheck@latest
