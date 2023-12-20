@@ -2,12 +2,21 @@
 
 # Container build
 
+## An instant HTTP server
+
+A webserver, serving on port 8080, can be brought up instantly to share files.
+
+```bash
+go install gitlab.com/BobyMCbobs/go-http-server@latest
+go-http-server
+```
+
 ## Simple
 
 Just serve your site
 
 ```dockerfile
-FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
 COPY site /app/site
 ```
 
@@ -16,7 +25,7 @@ COPY site /app/site
 Serve your site and set headers
 
 ```dockerfile
-FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
 env APP_HEADER_SET_ENABLE=true \
   APP_HEADER_MAP_PATH=./headers.yaml
 COPY site /app/site
@@ -28,7 +37,7 @@ COPY headers.yaml /app/headers.yaml
 Serve your site using [history mode](https://router.vuejs.org/guide/essentials/history-mode.html)
 
 ```dockerfile
-FROM registry.gitlab.com/bobymcbobs/go-http-server:1.7.0
+FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
 env APP_VUEJS_HISTORY_MODE=true
 COPY dist /app/dist
 ```
@@ -79,13 +88,4 @@ func main() {
     SetServeFolder(common.GetEnvOrDefault("KO_DATA_PATH", "./")).
     Listen()
 }
-```
-
-# An instant HTTP server
-
-A webserver, serving on port 8080, can be brought up instantly to share files.
-
-```bash
-go install gitlab.com/BobyMCbobs/go-http-server@latest
-go-http-server
 ```

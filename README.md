@@ -1,3 +1,5 @@
+# go-http-server
+
 > A HTTP server for sharing a local folder
 
 # Features
