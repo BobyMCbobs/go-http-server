@@ -11,6 +11,8 @@ FROM registry.gitlab.com/bobymcbobs/go-http-server:latest
 ADD mysite /var/run/ko
 ```
 
+see [usage](./usage.md) for more examples.
+
 With [crane](https://github.com/google/go-containerregistry/tree/main/cmd/crane)
 
 ```
