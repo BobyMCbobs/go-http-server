@@ -62,6 +62,7 @@ templateMap:
   AAAA: BBBB
 redirectRoutes:
   /abc: /cba
+  /example: http://example.com
 `,
 			setServeFolderToTemp: true,
 			findValue: func(ws *WebServer) any {
@@ -72,11 +73,40 @@ redirectRoutes:
 			want: []any{
 				map[string][]string{"X-Abc": {"Hello"}},
 				map[string]string{"AAAA": "BBBB"},
-				map[string]string{"/abc": "/cba"},
+				map[string]string{"/abc": "/cba", "/example": "http://example.com"},
 			},
 		},
 		{
-			name: "use settings from dotfile",
+			name:                 "dotfile overrides env",
+			setServeFolderToTemp: true,
+			env: map[string]string{
+				"APP_404_PAGE_FILE_NAME": "404-from-env.html",
+			},
+			dotfileContent: `---
+error404FilePath: 404-from-dotfile.html
+`,
+			findValue: func(ws *WebServer) any {
+				return ws.Error404FilePath
+			},
+			want: "404-from-dotfile.html",
+		},
+		{
+			name:                 "dotfile template and header env aren't evaluated",
+			setServeFolderToTemp: true,
+			dotfileContent: `---
+headerMap:
+  X-Abc:
+    - ${HOST}
+templateMap:
+  AAAA: ${HOST}
+`,
+			findValue: func(ws *WebServer) any {
+				return []any{ws.HeaderMap, ws.TemplateMap}
+			},
+			want: []any{map[string][]string{"X-Abc": {"${HOST}"}}, map[string]string{"AAAA": "${HOST}"}},
+		},
+		{
+			name: "use error 404 page from dotfile",
 			dotfileContent: `---
 error404FilePath: 404-lol.html
 `,
@@ -119,6 +149,16 @@ error404FilePath: 404-lol.html
 			},
 			want: true,
 		},
+		{
+			name: "bad http origins",
+			env: map[string]string{
+				"APP_HTTP_ALLOWED_ORIGINS": "%&*#exam???ple.com",
+			},
+			findValue: func(ws *WebServer) any {
+				return len(ws.HTTPAllowedOrigins)
+			},
+			want: 0,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -151,7 +191,7 @@ error404FilePath: 404-lol.html
 				}
 			}
 			if got := tt.findValue(NewWebServer()); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewWebServer() = %+v, want %+v", got, tt.want)
+				t.Errorf("NewWebServer() = %+v (%v), want %+v (%v)", got, reflect.TypeOf(got), tt.want, reflect.TypeOf(tt.want))
 			}
 		})
 	}
