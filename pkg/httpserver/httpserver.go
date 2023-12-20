@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -120,6 +121,7 @@ func NewWebServer() *WebServer {
 	}
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
+	// NOTE is this ever called?
 	for _, m := range w.ExtraMiddleware {
 		router.Use(m)
 	}
@@ -136,8 +138,12 @@ func NewWebServer() *WebServer {
 		}
 	}
 
-	w.LoadHeaderMap()
-	w.LoadTemplateMap()
+	if _, err := w.LoadHeaderMap(); err != nil {
+		log.Printf("error: failed to load header map: %v\n", err)
+	}
+	if _, err := w.LoadTemplateMap(); err != nil {
+		log.Printf("error: failed to load template map: %v\n", err)
+	}
 
 	for _, h := range w.ExtraHandlers {
 		if h.Path == "/" {
@@ -167,10 +173,12 @@ func NewWebServer() *WebServer {
 		ReadTimeout:  15 * time.Second,
 	}
 	if w.HTTPSPortEnabled {
-		w.LoadTLS()
+		if _, err := w.LoadTLS(); err != nil {
+			log.Printf("error: failed to load TLS: %v\n", err)
+		}
 		w.serverTLS = &http.Server{
 			Handler:      c.Handler(router),
-			Addr:         w.AppPort,
+			Addr:         w.HTTPSPort,
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
 			TLSConfig:    w.TLSConfig,
@@ -199,33 +207,33 @@ func (w *WebServer) SetExtraMiddleware(m ...func(http.Handler) http.Handler) *We
 }
 
 // LoadTLS loads in the TLS certs
-func (w *WebServer) LoadTLS() *WebServer {
+func (w *WebServer) LoadTLS() (*WebServer, error) {
 	w.TLSConfig = &tls.Config{}
 	w.TLSConfig.Certificates = make([]tls.Certificate, 1)
 	loadedCert, err := tls.LoadX509KeyPair(w.TLSCertPath, w.TLSKeyPath)
 	if err != nil {
-		log.Panicf("[fatal] Error loading certs: %v\n", err)
+		return w, err
 	}
 	w.TLSConfig.Certificates[0] = loadedCert
-	return w
+	return w, nil
 }
 
 // LoadTemplateMap loads the template map from the path
-func (w *WebServer) LoadTemplateMap() *WebServer {
+func (w *WebServer) LoadTemplateMap() (*WebServer, error) {
 	if w.TemplateMap == nil && !w.dotfileLoaded {
 		if _, err := os.Stat(w.TemplateMapPath); os.IsNotExist(err) {
 			log.Printf("[notice] history mode templating is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
-			return w
+			return w, fmt.Errorf("error: template map file not found")
 		}
 		configMap, err := common.LoadTemplateMapConfig(w.TemplateMapPath)
 		if err != nil {
-			log.Panicf("[fatal] Error template map: %v\n", err)
+			return w, err
 		}
 		w.TemplateMap = configMap
 	}
 	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap, !w.dotfileLoaded)
 	w.handler.TemplateMap = w.TemplateMap
-	return w
+	return w, nil
 }
 
 // SetTemplateMap set the template map
@@ -235,21 +243,21 @@ func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
 }
 
 // LoadHeaderMap loads the header map from the path
-func (w *WebServer) LoadHeaderMap() *WebServer {
+func (w *WebServer) LoadHeaderMap() (*WebServer, error) {
 	if w.HeaderMap == nil && !w.dotfileLoaded {
 		if _, err := os.Stat(w.HeaderMapPath); os.IsNotExist(err) {
 			log.Printf("[notice] header templating is enabled, header template maps (currently set to '%v') can also be used\n", w.HeaderMapPath)
-			return w
+			return w, fmt.Errorf("error: header template not found")
 		}
 		headerMap, err := common.LoadHeaderMapConfig(w.HeaderMapPath)
 		if err != nil {
-			panic(err)
+			return w, err
 		}
 		w.HeaderMap = headerMap
 	}
 	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap, !w.dotfileLoaded)
 	w.handler.HeaderMap = w.HeaderMap
-	return w
+	return w, nil
 }
 
 // SetHeaderMap sets the header map
@@ -286,12 +294,27 @@ func (w *WebServer) NewMetricsFromWebServer() *metrics.Metrics {
 }
 
 // Listen starting listening according to the configuration
-func (w *WebServer) Listen() {
+func (w *WebServer) Listen(ch ...<-chan bool) {
 	go w.NewMetricsFromWebServer().Handle()
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+	go func() {
+		if len(ch) == 0 {
+			return
+		}
+		for {
+			c, ok := <-ch[0]
+			log.Println("<- receieved event:", c, ok)
+			if !ok {
+				break
+			}
+			if c {
+				done <- os.Interrupt
+			}
+		}
+	}()
 	go func() {
 		log.Println("Listening on", w.AppPort)
 		if err := w.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
