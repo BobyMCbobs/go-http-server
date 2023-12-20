@@ -39,6 +39,9 @@ build-backend-smoketest:
     - go build -o /dev/null .
 
 build-container:
+  only:
+    - main
+    - tags
   stage: build
   image:
     name: $IMAGE_GOLANG_ALPINE

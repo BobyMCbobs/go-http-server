@@ -21,7 +21,7 @@ type Metrics struct {
 
 // Handle ...
 // HTTP handler for metrics
-func (m *Metrics) Handle() {
+func (m *Metrics) Handle(ch ...<-chan bool) {
 	if !m.Enabled {
 		return
 	}
@@ -38,6 +38,22 @@ func (m *Metrics) Handle() {
 	log.Printf("Metrics listening on %v\n", server.Addr)
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		if len(ch) == 0 {
+			return
+		}
+		for {
+			c, ok := <-ch[0]
+			log.Println("<- receieved event:", c, ok)
+			if !ok {
+				break
+			}
+			if c {
+				done <- os.Interrupt
+			}
+		}
+	}()
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

@@ -70,6 +70,10 @@ type WebServer struct {
 //
 // TODO clean up function
 func NewWebServer() *WebServer {
+	httpOrigins, err := common.GetHTTPAllowedOrigins()
+	if err != nil {
+		log.Printf("error: failed to load allowed http origins: %v\n", err)
+	}
 	w := &WebServer{
 		AppPort:               common.GetAppPort(),
 		EnvFile:               common.GetAppEnvFile(),
@@ -78,7 +82,7 @@ func NewWebServer() *WebServer {
 		HTTPPort:              common.GetAppPort(),
 		HTTPSPort:             common.GetAppHTTPSPort(),
 		HTTPSPortEnabled:      common.GetAppEnableHTTPS(),
-		HTTPAllowedOrigins:    common.GetHTTPAllowedOrigins(),
+		HTTPAllowedOrigins:    httpOrigins,
 		HeaderMapEnabled:      common.GetHeaderSetEnable(),
 		HeaderMapPath:         common.GetHeaderMapPath(),
 		HealthPort:            common.GetAppHealthPort(),

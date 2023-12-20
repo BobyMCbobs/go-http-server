@@ -149,18 +149,19 @@ func GetRedirectRoutesPath() (output string) {
 
 // GetHTTPAllowedOrigins ...
 // returns a list of specified allowed origins for configuring CORS
-func GetHTTPAllowedOrigins() (origins []string) {
+func GetHTTPAllowedOrigins() (origins []string, err error) {
 	for _, o := range strings.Split(GetEnvOrDefault("APP_HTTP_ALLOWED_ORIGINS", "*"), ",") {
 		if o == "" {
 			continue
 		}
 		u, err := url.Parse(o)
 		if err != nil {
-			log.Panicf("error: failed to parse URL '%v' from allowed origins; %v", o, err)
+			log.Printf("error: failed to parse URL '%v' from allowed origins; %v\n", o, err)
+			return origins, err
 		}
 		origins = append(origins, u.String())
 	}
-	return origins
+	return origins, nil
 }
 
 // GetEnvOrDefault ...
@@ -247,6 +248,7 @@ func WriteHeadersToResponse(w http.ResponseWriter, headerMap map[string][]string
 // GetRequestIP ...
 // returns r.RemoteAddr unless RealIPHeader is set
 func GetRequestIP(r *http.Request) (requestIP string) {
+	// TODO use from httpserver.WebServer
 	realIPHeader := GetAppRealIPHeader()
 	headerValue := r.Header.Get(realIPHeader)
 	if realIPHeader == "" || headerValue == "" {
