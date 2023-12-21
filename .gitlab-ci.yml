@@ -12,7 +12,7 @@ variables:
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
   IMAGE_GOLANG_ALPINE: docker.io/golang:1.21.5-alpine3.18@sha256:9390a996e9f957842f07dff1e9661776702575dd888084e72d86eaa382ad56e3
-  IMAGE_PYTHON: python:3.8-buster
+  IMAGE_PYTHON: docker.io/python:3.8-buster@sha256:04c3f641c2254c229fd2f704c5199ff4bea57d26c1c29008ae3a4afddde98709
   IMAGE_GOLANGCI_LINT: docker.io/golangci/golangci-lint:v1.53.3@sha256:1e0e2867b387bf68762427db499a963e43582b06819992db205fc31daa75ceea
   COSIGN_YES: "true"
 
@@ -143,13 +143,13 @@ pages:
   image: $IMAGE_PYTHON
   stage: pages
   before_script:
-    - pip install mkdocs-material
+    - pip install mkdocs-material material-plausible-plugin
   script:
-  - mkdocs build
-  - mv site public
+    - mkdocs build
+    - mv site public
   artifacts:
     paths:
-    - public
+      - public
   only:
     - main
 
