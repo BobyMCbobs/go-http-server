@@ -10,6 +10,14 @@ markdown_extensions:
   - toc:
       permalink: " ¶"
 
+plugins:
+  - material-plausible
+
+extra:
+  analytics:
+    provider: plausible
+    domain: bobymcbobs.gitlab.io
+
 theme:
   name: material
   features:
