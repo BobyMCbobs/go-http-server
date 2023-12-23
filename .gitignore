@@ -3,3 +3,5 @@
 .helm
 tilt_modules
 .ghs.yaml
+
+bin/

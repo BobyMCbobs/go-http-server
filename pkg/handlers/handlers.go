@@ -20,6 +20,7 @@ var (
 	fileServeDisallowList = []string{
 		// TODO add .git and sub directory listing to disallow list
 		"/.ghs.yaml",
+		"/.env",
 	}
 )
 

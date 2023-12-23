@@ -32,7 +32,6 @@ type ExtraHandler struct {
 type WebServer struct {
 	AppPort               string
 	HTTPAllowedOrigins    []string
-	EnvFile               string
 	Error404FilePath      string
 	ExtraHandlers         []*ExtraHandler
 	ExtraMiddleware       []func(http.Handler) http.Handler
@@ -76,7 +75,6 @@ func NewWebServer() *WebServer {
 	}
 	w := &WebServer{
 		AppPort:               common.GetAppPort(),
-		EnvFile:               common.GetAppEnvFile(),
 		Error404FilePath:      common.Get404PageFileName(),
 		GzipEnabled:           common.GetEnableGZIP(),
 		HTTPPort:              common.GetAppPort(),
@@ -235,6 +233,7 @@ func (w *WebServer) LoadTemplateMap() (*WebServer, error) {
 		}
 		w.TemplateMap = configMap
 	}
+	// TODO tidy condition of eval from env
 	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap, !w.dotfileLoaded)
 	w.handler.TemplateMap = w.TemplateMap
 	return w, nil
@@ -259,6 +258,7 @@ func (w *WebServer) LoadHeaderMap() (*WebServer, error) {
 		}
 		w.HeaderMap = headerMap
 	}
+	// TODO tidy condition of eval from env
 	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap, !w.dotfileLoaded)
 	w.handler.HeaderMap = w.HeaderMap
 	return w, nil
