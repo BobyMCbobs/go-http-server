@@ -201,7 +201,6 @@ func TestWebServer_SetServeFolder(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -258,7 +257,6 @@ func TestWebServer_SetServeFolder(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -300,7 +298,6 @@ func TestWebServer_SetExtraHandlers(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -377,7 +374,6 @@ func TestWebServer_SetExtraHandlers(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -438,7 +434,6 @@ func TestWebServer_SetExtraMiddleware(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -500,7 +495,6 @@ func TestWebServer_SetExtraMiddleware(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -542,7 +536,6 @@ func TestWebServer_LoadTLS(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -599,7 +592,6 @@ func TestWebServer_LoadTLS(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -666,7 +658,6 @@ func TestWebServer_LoadTemplateMap(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -759,7 +750,6 @@ Something: "${THINGY}"
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -832,7 +822,6 @@ func TestWebServer_SetTemplateMap(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -924,7 +913,6 @@ func TestWebServer_SetTemplateMap(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -978,7 +966,6 @@ func TestWebServer_LoadHeaderMap(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1074,7 +1061,6 @@ Something:
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -1147,7 +1133,6 @@ func TestWebServer_SetHeaderMap(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1239,7 +1224,6 @@ func TestWebServer_SetHeaderMap(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -1293,7 +1277,6 @@ func TestWebServer_newHandlerForWebServer(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1364,7 +1347,6 @@ func TestWebServer_newHandlerForWebServer(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -1406,7 +1388,6 @@ func TestWebServer_SetHandler(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1465,7 +1446,6 @@ func TestWebServer_SetHandler(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -1507,7 +1487,6 @@ func TestWebServer_NewMetricsFromWebServer(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1572,7 +1551,6 @@ func TestWebServer_NewMetricsFromWebServer(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,
@@ -1614,7 +1592,6 @@ func TestWebServer_Listen(t *testing.T) {
 	type fields struct {
 		AppPort               string
 		HTTPAllowedOrigins    []string
-		EnvFile               string
 		Error404FilePath      string
 		ExtraHandlers         []*ExtraHandler
 		ExtraMiddleware       []func(http.Handler) http.Handler
@@ -1666,14 +1643,6 @@ func TestWebServer_Listen(t *testing.T) {
 				MetricsPort:      fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
 			},
 		},
-		// {
-		// 	name: "no quit channel",
-		// 	fields: fields{
-		// 		AppPort:     fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
-		// 		MetricsPort: fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
-		// 	},
-		// 	noQuitChannel: true,
-		// },
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -1681,7 +1650,6 @@ func TestWebServer_Listen(t *testing.T) {
 			w := &WebServer{
 				AppPort:               tt.fields.AppPort,
 				HTTPAllowedOrigins:    tt.fields.HTTPAllowedOrigins,
-				EnvFile:               tt.fields.EnvFile,
 				Error404FilePath:      tt.fields.Error404FilePath,
 				ExtraHandlers:         tt.fields.ExtraHandlers,
 				ExtraMiddleware:       tt.fields.ExtraMiddleware,

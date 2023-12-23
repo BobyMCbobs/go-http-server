@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
-	// initialise the app
 	log.Printf("%v (%v, %v, %v, %v)\n", common.AppName, common.AppBuildVersion, common.AppBuildHash, common.AppBuildMode, common.AppBuildDate)
+	if common.AppBuildMode == "development" {
+		_ = godotenv.Load(".env")
+	}
 	ws := ghs.NewWebServer()
-	_ = godotenv.Load(ws.EnvFile)
 	log.Printf("Configuration: %#v\n", ws)
 	ws.Listen()
 }

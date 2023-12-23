@@ -22,15 +22,9 @@ var (
 	AppBuildVersion          = "0.0.0"
 	AppBuildHash             = "???"
 	AppBuildDate             = "???"
-	AppBuildMode             = "???"
+	AppBuildMode             = "development"
 	AppServeFolderConfigName = ".ghs.yaml"
 )
-
-// GetAppEnvFile ...
-// location of an env file to load
-func GetAppEnvFile() (output string) {
-	return GetEnvOrDefault("APP_ENV_FILE", ".env")
-}
 
 // GetAppHealthPortEnabled ...
 // enable the binding of a health port

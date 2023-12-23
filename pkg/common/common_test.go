@@ -41,44 +41,6 @@ func (w responseWriter) WriteHeader(statusCode int) {
 	w.StatusCode = statusCode
 }
 
-func TestGetAppEnvFile(t *testing.T) {
-	tests := []struct {
-		name       string
-		env        map[string]string
-		wantOutput string
-	}{
-		{
-			name:       "basic",
-			env:        nil,
-			wantOutput: ".env",
-		},
-		{
-			name:       "set env",
-			env:        map[string]string{"APP_ENV_FILE": ".test.env"},
-			wantOutput: ".test.env",
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			prevEnv := map[string]string{}
-			for k, v := range tt.env {
-				prevEnv[k] = os.Getenv(k)
-				os.Setenv(k, v)
-			}
-			defer func() {
-				for k, v := range prevEnv {
-					os.Setenv(k, v)
-				}
-			}()
-
-			if gotOutput := GetAppEnvFile(); gotOutput != tt.wantOutput {
-				t.Errorf("GetAppEnvFile() = %v, want %v", gotOutput, tt.wantOutput)
-			}
-		})
-	}
-}
-
 func TestGetAppHealthPortEnabled(t *testing.T) {
 	tests := []struct {
 		name       string
