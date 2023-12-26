@@ -227,21 +227,23 @@ func (w *WebServer) LoadTemplateMap() (*WebServer, error) {
 			log.Printf("[notice] history mode templating is enabled, template maps (currently set to '%v') can also be used\n", w.TemplateMapPath)
 			return w, fmt.Errorf("error: template map file not found")
 		}
-		configMap, err := common.LoadTemplateMapConfig(w.TemplateMapPath)
+		templateMap, err := common.LoadTemplateMapConfig(w.TemplateMapPath)
 		if err != nil {
 			return w, err
 		}
-		w.TemplateMap = configMap
+		w.TemplateMap = common.EvaluateEnvFromMap(templateMap)
 	}
-	// TODO tidy condition of eval from env
-	w.TemplateMap = common.EvaluateEnvFromMap(w.TemplateMap, !w.dotfileLoaded)
 	w.handler.TemplateMap = w.TemplateMap
 	return w, nil
 }
 
 // SetTemplateMap set the template map
 func (w *WebServer) SetTemplateMap(input map[string]string) *WebServer {
-	w.handler.TemplateMap = common.EvaluateEnvFromMap(input, !w.dotfileLoaded)
+	if !w.dotfileLoaded {
+		input = common.EvaluateEnvFromMap(input)
+	}
+	w.TemplateMap = input
+	w.handler.TemplateMap = input
 	return w
 }
 
@@ -256,17 +258,19 @@ func (w *WebServer) LoadHeaderMap() (*WebServer, error) {
 		if err != nil {
 			return w, err
 		}
-		w.HeaderMap = headerMap
+		w.HeaderMap = common.EvaluateEnvFromHeaderMap(headerMap)
 	}
-	// TODO tidy condition of eval from env
-	w.HeaderMap = common.EvaluateEnvFromHeaderMap(w.HeaderMap, !w.dotfileLoaded)
 	w.handler.HeaderMap = w.HeaderMap
 	return w, nil
 }
 
 // SetHeaderMap sets the header map
 func (w *WebServer) SetHeaderMap(input map[string][]string) *WebServer {
-	w.handler.HeaderMap = common.EvaluateEnvFromHeaderMap(input, !w.dotfileLoaded)
+	if !w.dotfileLoaded {
+		input = common.EvaluateEnvFromHeaderMap(input)
+	}
+	w.HeaderMap = input
+	w.handler.HeaderMap = input
 	return w
 }
 

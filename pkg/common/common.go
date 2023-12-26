@@ -170,12 +170,10 @@ func GetEnvOrDefault(envName string, defaultValue string) (output string) {
 
 // EvaluateEnvFromMap ...
 // evaluates environment variables from map[string]string{}
-func EvaluateEnvFromMap(input map[string]string, fromEnv bool) (output map[string]string) {
+func EvaluateEnvFromMap(input map[string]string) (output map[string]string) {
 	output = map[string]string{}
 	for index, value := range input {
-		if fromEnv {
-			value = os.ExpandEnv(value)
-		}
+		value = os.ExpandEnv(value)
 		output[index] = value
 	}
 	return output
@@ -197,14 +195,11 @@ func LoadTemplateMapConfig(path string) (output map[string]string, err error) {
 
 // EvaluateEnvFromHeaderMap ...
 // evaluates environment variables from map[string][]string
-func EvaluateEnvFromHeaderMap(input map[string][]string, fromEnv bool) (output map[string][]string) {
+func EvaluateEnvFromHeaderMap(input map[string][]string) (output map[string][]string) {
 	output = map[string][]string{}
 	for key, value := range input {
 		for _, valueSub := range value {
-			value := valueSub
-			if fromEnv {
-				value = os.ExpandEnv(valueSub)
-			}
+			value := os.ExpandEnv(valueSub)
 			output[key] = append(output[key], value)
 		}
 	}
