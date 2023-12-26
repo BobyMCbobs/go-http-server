@@ -1,3 +1,4 @@
+---
 stages:
   - conform
   - test
@@ -19,7 +20,7 @@ variables:
 .image-set-build-env: &image-set-build-env |
   echo "Commit made on '${CI_COMMIT_TIMESTAMP}'"
   export APP_BUILD_HASH="$CI_COMMIT_SHORT_SHA"
-  export APP_BUILD_DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d.%H%M')
+  export APP_BUILD_DATE="$(git show -s --format=%cd --date=format:'%Y.%m.%d.%H%M')"
   export APP_BUILD_VERSION=0.0.0
   export APP_BUILD_MODE=development
   export IMAGE_DESTINATIONS="latest"
@@ -31,12 +32,6 @@ variables:
 
 .setup-testing-repo: &setup-testing-repo |
   echo 'https://dl-cdn.alpinelinux.org/alpine/edge/testing' | tee -a /etc/apk/repositories
-
-build-backend-smoketest:
-  stage: codequality
-  image: $IMAGE_GOLANG_ALPINE
-  script:
-    - go build -o /dev/null .
 
 build-container:
   only:
@@ -60,68 +55,69 @@ build-container:
     - ko login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}"
     - *image-set-build-env
   script:
-    - |
-      IMAGE="$(ko publish \
-      --bare \
-      --tags "${IMAGE_DESTINATIONS}" \
-      .)"
-    - cosign sign --recursive -y "$IMAGE"
-    - cosign download sbom $IMAGE > /tmp/sbom-spdx.json
-    - cosign attest -y --recursive --predicate /tmp/sbom-spdx.json $IMAGE
+    - ./hack/publish.sh --sign
 
-spell_check:
+build-backend-smoketest:
+  stage: codequality
+  image: $IMAGE_GOLANG_ALPINE
+  before_script:
+    - apk add --no-cache git
+  script:
+    - ./hack/verify-build-smoketest.sh
+
+spellcheck:
   stage: codequality
   image:
     name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   allow_failure: true
   before_script:
-    - go install github.com/client9/misspell/cmd/misspell@latest
+    - apk add --no-cache git
   script:
-    - misspell -error main.go cmd pkg docs k8s-manifests README*
+    - ./hack/verify-spellcheck.sh
 
-lint_backend:
+lint-backend:
   stage: codequality
   image:
     name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   allow_failure: true
   before_script:
-    - go install golang.org/x/lint/golint@latest
+    - apk add --no-cache git
   script:
-    - golint -set_exit_status ./...
+    - ./hack/verify-lint-backend.sh
 
 gotest:
   stage: codequality
   image: $IMAGE_GOLANG_ALPINE
+  before_script:
+    - apk add --no-cache git
   script:
-    - go test -cover -v ./...
+    - ./hack/verify-gotest.sh
 
 govet:
   stage: codequality
   image: $IMAGE_GOLANG_ALPINE
+  before_script:
+    - apk add --no-cache git
   script:
-    - go vet -v ./...
+    - ./hack/verify-govet.sh
 
 gofmt:
   stage: codequality
   image: $IMAGE_GOLANG_ALPINE
+  before_script:
+    - apk add --no-cache git
   script:
-    - find . -name "*.go" | grep -E -v vendor | xargs gofmt -s -l -d -w -s
+    - ./hack/verify-gofmt.sh
 
 goimports:
   stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   before_script:
     - apk add --no-cache git
-    - go install golang.org/x/tools/cmd/goimports@latest
   script:
-    - find . -type f -name '*.go' -not -path './vendor/*' | xargs -I{} goimports -w {}
-    - |
-      if git diff --name-only --diff-filter=ACMRT | grep -E '(.*).go$'; then
-        echo "error: changes detected, run 'find . -type f -name '*.go' -not -path './vendor/*' | xargs -I{} goimports -w {}'"
-        exit 1
-      fi
+    - ./hack/verify-goimports.sh
 
 golangci-lint:
   stage: codequality
@@ -129,24 +125,27 @@ golangci-lint:
     name: $IMAGE_GOLANGCI_LINT
     entrypoint: [""]
   script:
-    - golangci-lint run
+    - ./hack/verify-golangci-lint.sh
 
 govulncheck:
   stage: codequality
   image: $IMAGE_GOLANG_ALPINE
   before_script:
-    - go install golang.org/x/vuln/cmd/govulncheck@latest
+    - apk add --no-cache git
   script:
-    - govulncheck ./...
+    - ./hack/verify-govulncheck.sh
+
+pages-smoketest:
+  image: $IMAGE_PYTHON
+  stage: codequality
+  script:
+    - ./hack/build-docs.sh
 
 pages:
   image: $IMAGE_PYTHON
   stage: pages
-  before_script:
-    - pip install mkdocs-material material-plausible-plugin
   script:
-    - mkdocs build
-    - mv site public
+    - ./hack/build-docs.sh
   artifacts:
     paths:
       - public
