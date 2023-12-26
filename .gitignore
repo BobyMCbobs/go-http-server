@@ -5,3 +5,4 @@ tilt_modules
 .ghs.yaml
 
 bin/
+/public/

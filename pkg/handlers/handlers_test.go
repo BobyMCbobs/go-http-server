@@ -35,20 +35,8 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 			headers    map[string]string
 		}
 	}{
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "basic test",
 			serveFolder: []struct {
 				name    string
@@ -87,20 +75,8 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 				},
 			},
 		},
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "templating test",
 			fields: fields{
 				TemplateMap: map[string]string{
@@ -129,20 +105,8 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 				},
 			},
 		},
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "templating test with bad template 1",
 			fields: fields{
 				TemplateMap: map[string]string{
@@ -172,20 +136,8 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 				},
 			},
 		},
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "templating test with bad template 2",
 			fields: fields{
 				TemplateMap: map[string]string{
@@ -215,25 +167,13 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 				},
 			},
 		},
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "header map test",
 			fields: fields{
 				HeaderMapEnabled: true,
 				HeaderMap: map[string][]string{
-					"X-Some-Header": []string{"Yes"},
+					"X-Some-Header": {"Yes"},
 				},
 			},
 			serveFolder: []struct {
@@ -261,20 +201,8 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 				},
 			},
 		},
-		struct {
-			name        string
-			fields      fields
-			serveFolder []struct {
-				name    string
-				content string
-			}
-			tests []struct {
-				path       string
-				content    string
-				statusCode int
-				headers    map[string]string
-			}
-		}{
+
+		{
 			name: "basic test with disallowed path",
 			serveFolder: []struct {
 				name    string
@@ -485,7 +413,7 @@ func TestHandler_serveHandlerStandard(t *testing.T) {
 			fields: fields{
 				HeaderMapEnabled: true,
 				HeaderMap: map[string][]string{
-					"X-Some-Header": []string{"Yes"},
+					"X-Some-Header": {"Yes"},
 				},
 			},
 			serveFolder: []struct {
@@ -699,16 +627,8 @@ func TestHandler_ServeStandardRedirect(t *testing.T) {
 			errorBody  string
 		}
 	}{
-		struct {
-			name   string
-			fields fields
-			args   args
-			want   struct {
-				location   string
-				statusCode int
-				errorBody  string
-			}
-		}{
+
+		{
 			name: "basic path redirect",
 			args: args{
 				from: "/a",
@@ -722,16 +642,8 @@ func TestHandler_ServeStandardRedirect(t *testing.T) {
 				location: "/b",
 			},
 		},
-		struct {
-			name   string
-			fields fields
-			args   args
-			want   struct {
-				location   string
-				statusCode int
-				errorBody  string
-			}
-		}{
+
+		{
 			name: "basic path redirect to url",
 			args: args{
 				from: "/a",
@@ -745,16 +657,8 @@ func TestHandler_ServeStandardRedirect(t *testing.T) {
 				location: "http://example.com/",
 			},
 		},
-		struct {
-			name   string
-			fields fields
-			args   args
-			want   struct {
-				location   string
-				statusCode int
-				errorBody  string
-			}
-		}{
+
+		{
 			name: "bad url",
 			args: args{
 				from: "/a",
