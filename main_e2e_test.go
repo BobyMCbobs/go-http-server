@@ -19,11 +19,15 @@ import (
 var defaultEnv = map[string]string{
 	"APP_METRICS_ENABLED": "false",
 }
-var client = &http.Client{
-	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	},
-}
+var (
+	client = &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	numberRunes = []rune("0123456789")
+)
 
 func newRequest(method string, url string, body io.Reader) (req *http.Request) {
 	req, _ = http.NewRequest(method, url, body)
@@ -32,6 +36,14 @@ func newRequest(method string, url string, body io.Reader) (req *http.Request) {
 
 func pointer[V any](input V) *V {
 	return &input
+}
+
+func randStringRunes(set []rune, n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = set[rand.Intn(len(set))]
+	}
+	return string(b)
 }
 
 func TestMain(t *testing.T) {
@@ -318,6 +330,8 @@ X-From-Env:
 /some-page: /another-page
 /docs: https://bobymcbobs.gitlab.io/go-http-server/
 /example: https://example.com/
+/{thing:[0-9]+}: https://example.com/404
+/page/some-page-{any:.*}: /some-page
 `,
 			},
 			requests: []struct {
@@ -366,6 +380,30 @@ X-From-Env:
 						"Location": "https://example.com/",
 					},
 				},
+				{
+					req:      newRequest(http.MethodGet, "/123", nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/"+randStringRunes(numberRunes, 9), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/page/some-page-"+randStringRunes(letterRunes, 10), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "/some-page",
+					},
+				},
 			},
 		},
 		// testcase history mode omnibus
@@ -390,6 +428,8 @@ Title: Hello!
 /some-page: /another-page
 /docs: https://bobymcbobs.gitlab.io/go-http-server/
 /example: https://example.com/
+/{thing:[0-9]+}: https://example.com/404
+/page/some-page-{any:.*}: /some-page
 `,
 				"./cfg-for-testing-only-this-is-bad-practice-in-web-serve-folder/headers.yaml": `---
 X-Cool-As:
@@ -476,6 +516,30 @@ X-From-Env:
 						"Location": "https://example.com/",
 					},
 				},
+				{
+					req:      newRequest(http.MethodGet, "/123", nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/"+randStringRunes(numberRunes, 9), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/page/some-page-"+randStringRunes(letterRunes, 10), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "/some-page",
+					},
+				},
 			},
 		},
 		// testcase dotfiles
@@ -492,6 +556,8 @@ redirectRoutes:
   /some-page: /another-page
   /docs: https://bobymcbobs.gitlab.io/go-http-server/
   /example: https://example.com/
+  /{thing:[0-9]+}: https://example.com/404
+  /page/some-page-{any:.*}: /some-page
 `,
 				"index.html":   `Hello!`,
 				"some404.html": `Not found!!!`,
@@ -563,6 +629,30 @@ redirectRoutes:
 						"Location": "https://example.com/",
 					},
 				},
+				{
+					req:      newRequest(http.MethodGet, "/123", nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/"+randStringRunes(numberRunes, 9), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "https://example.com/404",
+					},
+				},
+				{
+					req:      newRequest(http.MethodGet, "/page/some-page-"+randStringRunes(letterRunes, 10), nil),
+					wantBody: nil,
+					wantCode: http.StatusTemporaryRedirect,
+					wantHeaders: map[string]string{
+						"Location": "/some-page",
+					},
+				},
 			},
 		},
 		// testcase dotfiles with history mode and templating
@@ -583,6 +673,8 @@ redirectRoutes:
   /some-page: /another-page
   /docs: https://bobymcbobs.gitlab.io/go-http-server/
   /example: https://example.com/
+  /{thing:[0-9]+}: https://example.com/404
+  /page/some-page-{any:.*}: /some-page
 `,
 				"index.html": `{{ .Title }} {{ .UnevaluatedEnv }}`,
 			},
@@ -765,6 +857,7 @@ redirectRoutes:
 				if err != nil {
 					t.Fatal(err)
 				}
+				t.Log(resp.Header)
 				if !r.wantError && r.wantBody != nil && string(body) != *r.wantBody {
 					t.Fatalf("request to path returned body '%v' = %v; wants = %v", r.req.URL.Path, string(body), *r.wantBody)
 				}

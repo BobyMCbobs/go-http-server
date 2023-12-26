@@ -883,8 +883,7 @@ func TestGetEnvOrDefault(t *testing.T) {
 
 func TestEvaluateEnvFromMap(t *testing.T) {
 	type args struct {
-		input   map[string]string
-		fromEnv bool
+		input map[string]string
 	}
 	tests := []struct {
 		name       string
@@ -902,27 +901,10 @@ func TestEvaluateEnvFromMap(t *testing.T) {
 					"AAA": "aaa",
 					"BBB": "${BBBBBBBB}",
 				},
-				fromEnv: true,
 			},
 			wantOutput: map[string]string{
 				"AAA": "aaa",
 				"BBB": "bbbb",
-			},
-		},
-		{
-			name: "no env",
-			env: map[string]string{
-				"BBBBBBBB": "bbbb",
-			},
-			args: args{
-				input: map[string]string{
-					"AAA": "aaa",
-					"BBB": "${BBBBBBBB}",
-				},
-			},
-			wantOutput: map[string]string{
-				"AAA": "aaa",
-				"BBB": "${BBBBBBBB}",
 			},
 		},
 	}
@@ -938,8 +920,8 @@ func TestEvaluateEnvFromMap(t *testing.T) {
 					os.Setenv(k, v)
 				}
 			}()
-			if gotOutput := EvaluateEnvFromMap(tt.args.input, tt.args.fromEnv); !reflect.DeepEqual(gotOutput, tt.wantOutput) {
-				t.Errorf("EvaluateEnvFromMap(%v, %v) = %v, want %v", tt.args.input, tt.args.fromEnv, gotOutput, tt.wantOutput)
+			if gotOutput := EvaluateEnvFromMap(tt.args.input); !reflect.DeepEqual(gotOutput, tt.wantOutput) {
+				t.Errorf("EvaluateEnvFromMap(%v) = %v, want %v", tt.args.input, gotOutput, tt.wantOutput)
 			}
 		})
 	}
@@ -1018,8 +1000,7 @@ SomeKey: Hello!
 
 func TestEvaluateEnvFromHeaderMap(t *testing.T) {
 	type args struct {
-		input   map[string][]string
-		fromEnv bool
+		input map[string][]string
 	}
 	tests := []struct {
 		name       string
@@ -1034,23 +1015,9 @@ func TestEvaluateEnvFromHeaderMap(t *testing.T) {
 				input: map[string][]string{
 					"X-Thingy": {"AAA", "${BBB}"},
 				},
-				fromEnv: true,
 			},
 			wantOutput: map[string][]string{
 				"X-Thingy": {"AAA", "123"},
-			},
-		},
-		{
-			name: "no env",
-			env:  map[string]string{"BBB": "123"},
-			args: args{
-				input: map[string][]string{
-					"X-Thingy": {"AAA", "${BBB}"},
-				},
-				fromEnv: false,
-			},
-			wantOutput: map[string][]string{
-				"X-Thingy": {"AAA", "${BBB}"},
 			},
 		},
 	}
@@ -1066,8 +1033,8 @@ func TestEvaluateEnvFromHeaderMap(t *testing.T) {
 					os.Setenv(k, v)
 				}
 			}()
-			if gotOutput := EvaluateEnvFromHeaderMap(tt.args.input, tt.args.fromEnv); !reflect.DeepEqual(gotOutput, tt.wantOutput) {
-				t.Errorf("EvaluateEnvFromHeaderMap(%v, %v) = %v, want %v", tt.args.input, tt.args.fromEnv, gotOutput, tt.wantOutput)
+			if gotOutput := EvaluateEnvFromHeaderMap(tt.args.input); !reflect.DeepEqual(gotOutput, tt.wantOutput) {
+				t.Errorf("EvaluateEnvFromHeaderMap(%v) = %v, want %v", tt.args.input, gotOutput, tt.wantOutput)
 			}
 		})
 	}
