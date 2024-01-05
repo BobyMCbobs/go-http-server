@@ -44,6 +44,7 @@ type WebServer struct {
 	HeaderMapPath         string
 	HealthPort            string
 	HealthPortEnabled     bool
+	UseInMemoryServePath  bool
 	MetricsPort           string
 	MetricsPortEnabled    bool
 	RealIPHeader          string
@@ -63,6 +64,7 @@ type WebServer struct {
 	server        *http.Server
 	serverTLS     *http.Server
 	dotfileLoaded bool
+	tmpServePath  string
 }
 
 // NewWebServer returns a default WebServer, as per environment configuration
@@ -85,6 +87,7 @@ func NewWebServer() *WebServer {
 		HeaderMapPath:         common.GetHeaderMapPath(),
 		HealthPort:            common.GetAppHealthPort(),
 		HealthPortEnabled:     common.GetAppHealthPortEnabled(),
+		UseInMemoryServePath:  common.GetUseInMemoryServePath(),
 		MetricsPort:           common.GetAppMetricsPort(),
 		MetricsPortEnabled:    common.GetAppMetricsEnabled(),
 		RealIPHeader:          common.GetAppRealIPHeader(),
@@ -156,7 +159,20 @@ func NewWebServer() *WebServer {
 	}
 	w.handler = w.newHandlerForWebServer()
 
-	fullServePath, _ := filepath.Abs(w.ServeFolder)
+	servingFolderPath := w.ServeFolder
+	if w.UseInMemoryServePath {
+		tmpDir, err := os.MkdirTemp("", "ghs-serve-*")
+		if err != nil {
+			log.Fatalf("failed to create tmp dir: %v", err)
+		}
+		if err := common.CopyDir(w.ServeFolder, tmpDir); err != nil {
+			log.Fatalf("failed to copy serve folder (%v) to tmp folder (%v): %v", w.ServeFolder, tmpDir, err)
+		}
+		servingFolderPath = tmpDir
+		w.tmpServePath = tmpDir
+	}
+
+	fullServePath, _ := filepath.Abs(servingFolderPath)
 	log.Printf("Serving folder '%v'\n", fullServePath)
 	router.PathPrefix("/").Handler(w.handler.ServeHandler())
 
@@ -343,6 +359,11 @@ func (w *WebServer) Listen(ch ...<-chan bool) {
 	}
 
 	<-done
+	if w.UseInMemoryServePath {
+		if err := os.RemoveAll(w.tmpServePath); err != nil {
+			log.Fatalf("failed to remove tmp serve directory: %v", err)
+		}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := w.server.Shutdown(ctx); err != nil {

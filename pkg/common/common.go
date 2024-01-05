@@ -6,11 +6,14 @@ package common
 
 import (
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -139,6 +142,12 @@ func GetRedirectRoutesEnabled() (output bool) {
 // return if redirecting routes should be enabled
 func GetRedirectRoutesPath() (output string) {
 	return GetEnvOrDefault("APP_REDIRECT_ROUTES_PATH", "./redirects.yaml")
+}
+
+// GetUseInMemoryServePath ...
+// return if the serve folder should be from tmpfs for speed
+func GetUseInMemoryServePath() (output bool) {
+	return GetEnvOrDefault("APP_USE_IN_MEMORY_SERVE_PATH", "false") == "true"
 }
 
 // GetHTTPAllowedOrigins ...
@@ -313,4 +322,49 @@ func LoadRedirectRoutesConfig(path string) (output map[string]string, err error)
 		return map[string]string{}, err
 	}
 	return output, nil
+}
+
+func CopyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		outpath := filepath.Join(dst, strings.TrimPrefix(path, src))
+		if info.IsDir() {
+			if err := os.MkdirAll(outpath, info.Mode()); err != nil {
+				return err
+			}
+			return nil
+		}
+		if !info.Mode().IsRegular() {
+			switch info.Mode().Type() & os.ModeType {
+			case os.ModeSymlink:
+				link, err := os.Readlink(path)
+				if err != nil {
+					return err
+				}
+				return os.Symlink(link, outpath)
+			}
+			return nil
+		}
+		in, _ := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer in.Close()
+
+		fh, err := os.Create(outpath)
+		if err != nil {
+			return err
+		}
+		defer fh.Close()
+
+		if err := fh.Chmod(info.Mode()); err != nil {
+			return err
+		}
+		if _, err := io.Copy(fh, in); err != nil {
+			return err
+		}
+		return nil
+	})
 }
