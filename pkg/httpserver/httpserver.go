@@ -174,7 +174,7 @@ func NewWebServer() *WebServer {
 
 	fullServePath, _ := filepath.Abs(servingFolderPath)
 	log.Printf("Serving folder '%v'\n", fullServePath)
-	router.PathPrefix("/").Handler(w.handler.ServeHandler())
+	router.PathPrefix("/").Handler(w.handler.ServeHandler()).Methods(http.MethodGet, http.MethodHead)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   w.HTTPAllowedOrigins,
