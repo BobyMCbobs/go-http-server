@@ -137,9 +137,11 @@ func (h *Handler) ServeStandardRedirect(from string, to string) http.HandlerFunc
 
 func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if host := r.Header.Get("Host"); h.RewriteDomain != "" &&
+		log.Println(r.Host, r.Header.Get("Host"))
+		if host := r.Host; h.RewriteDomain != "" &&
 			host != h.RewriteDomain {
 			r.URL.Host = h.RewriteDomain
+			log.Printf("redirecting '%v' -> '%v'\n", host, h.RewriteDomain)
 			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
 			return
 		}
