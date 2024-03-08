@@ -31,6 +31,7 @@ type Handler struct {
 	GzipEnabled        bool
 	HeaderMapEnabled   bool
 	TemplateMap        map[string]string
+	RewriteDomain      string
 	TemplateMapEnabled bool
 	VueJSHistoryMode   bool
 	ServeFolder        string
@@ -131,5 +132,17 @@ func (h *Handler) ServeStandardRedirect(from string, to string) http.HandlerFunc
 		toURL.RawQuery = req.URL.Query().Encode()
 		log.Printf("redirecting '%v' -> '%v'\n", from, to)
 		http.Redirect(w, req, toURL.String(), http.StatusTemporaryRedirect)
+	})
+}
+
+func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if host := r.Header.Get("Host"); h.RewriteDomain != "" &&
+			host != h.RewriteDomain {
+			r.URL.Host = h.RewriteDomain
+			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
+			return
+		}
+		next.ServeHTTP(w, r)
 	})
 }

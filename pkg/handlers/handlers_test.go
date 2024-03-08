@@ -705,3 +705,100 @@ func TestHandler_ServeStandardRedirect(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_RewriteToDomain(t *testing.T) {
+	type fields struct {
+		Error404FilePath   string
+		HeaderMap          map[string][]string
+		GzipEnabled        bool
+		HeaderMapEnabled   bool
+		TemplateMap        map[string]string
+		RewriteDomain      string
+		TemplateMapEnabled bool
+		VueJSHistoryMode   bool
+		ServeFolder        string
+	}
+	type want struct {
+		location   string
+		statusCode int
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		requestURL string
+		want       want
+	}{
+		{
+			name: "basic",
+			fields: fields{
+				RewriteDomain: "subdomain.example.com",
+			},
+			requestURL: "http://example.com",
+			want: want{
+				location:   "http://subdomain.example.com",
+				statusCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name: "https-in-location-protocol",
+			fields: fields{
+				RewriteDomain: "subdomain.example.com",
+			},
+			requestURL: "https://example.com",
+			want: want{
+				location:   "https://subdomain.example.com",
+				statusCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name: "no-rewrite-on-same-domain",
+			fields: fields{
+				RewriteDomain: "subdomain.example.com",
+			},
+			requestURL: "http://subdomain.example.com",
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name:       "no-rewrite-domain",
+			requestURL: "http://example.com",
+			want: want{
+				location:   "example.com",
+				statusCode: http.StatusOK,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				Error404FilePath:   tt.fields.Error404FilePath,
+				HeaderMap:          tt.fields.HeaderMap,
+				GzipEnabled:        tt.fields.GzipEnabled,
+				HeaderMapEnabled:   tt.fields.HeaderMapEnabled,
+				TemplateMap:        tt.fields.TemplateMap,
+				RewriteDomain:      tt.fields.RewriteDomain,
+				TemplateMapEnabled: tt.fields.TemplateMapEnabled,
+				VueJSHistoryMode:   tt.fields.VueJSHistoryMode,
+				ServeFolder:        tt.fields.ServeFolder,
+			}
+			req := httptest.NewRequest("GET", tt.requestURL, nil)
+			u, err := url.Parse(tt.requestURL)
+			if err != nil {
+				t.Fatalf("failed to parse requestURL '%v'", tt.requestURL)
+			}
+			req.Header.Add("Host", u.Host)
+			rr := httptest.NewRecorder()
+			h.RewriteToDomain(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			).ServeHTTP(rr, req)
+
+			if code := rr.Result().StatusCode; code != tt.want.statusCode {
+				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v", code, tt.want.statusCode)
+			}
+			if got := rr.Result().Header.Get("Location"); got != tt.want.location && tt.fields.RewriteDomain != "" {
+				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v", got, tt.want.location)
+			}
+		})
+	}
+}
