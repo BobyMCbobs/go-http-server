@@ -12,7 +12,7 @@ include:
 variables:
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
-  IMAGE_GOLANG_ALPINE: docker.io/golang:1.21.5-alpine3.18@sha256:9390a996e9f957842f07dff1e9661776702575dd888084e72d86eaa382ad56e3
+  IMAGE_GOLANG_ALPINE: docker.io/golang:1.22.1-alpine3.19@sha256:fc5e5848529786cf1136563452b33d713d5c60b2c787f6b2a077fa6eeefd9114
   IMAGE_PYTHON: docker.io/python:3.8-buster@sha256:04c3f641c2254c229fd2f704c5199ff4bea57d26c1c29008ae3a4afddde98709
   IMAGE_GOLANGCI_LINT: docker.io/golangci/golangci-lint:v1.53.3@sha256:1e0e2867b387bf68762427db499a963e43582b06819992db205fc31daa75ceea
   COSIGN_YES: "true"

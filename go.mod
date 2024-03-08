@@ -1,6 +1,6 @@
 module gitlab.com/BobyMCbobs/go-http-server
 
-go 1.20
+go 1.22
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
