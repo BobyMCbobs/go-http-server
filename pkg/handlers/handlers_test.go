@@ -713,7 +713,7 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 		GzipEnabled        bool
 		HeaderMapEnabled   bool
 		TemplateMap        map[string]string
-		RewriteDomain      string
+		RewriteDomains     map[string]string
 		TemplateMapEnabled bool
 		VueJSHistoryMode   bool
 		ServeFolder        string
@@ -731,7 +731,9 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 		{
 			name: "basic",
 			fields: fields{
-				RewriteDomain: "subdomain.example.com",
+				RewriteDomains: map[string]string{
+					"*": "http://subdomain.example.com",
+				},
 			},
 			requestURL: "http://example.com",
 			want: want{
@@ -740,24 +742,83 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 			},
 		},
 		{
-			name: "https-in-location-protocol",
+			name: "no-rewrite-on-same-domain",
 			fields: fields{
-				RewriteDomain: "subdomain.example.com",
+				RewriteDomains: map[string]string{
+					"*": "https://subdomain.example.com",
+				},
 			},
-			requestURL: "https://example.com",
+			requestURL: "https://subdomain.example.com",
 			want: want{
-				location:   "https://subdomain.example.com",
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "rewrite-on-same-domain-with-path",
+			fields: fields{
+				RewriteDomains: map[string]string{
+					"*": "https://subdomain.example.com/aaa",
+				},
+			},
+			requestURL: "https://example.com/aaa",
+			want: want{
+				location:   "https://subdomain.example.com/aaa",
 				statusCode: http.StatusTemporaryRedirect,
 			},
 		},
 		{
-			name: "no-rewrite-on-same-domain",
+			name: "basic-alternate-domain",
 			fields: fields{
-				RewriteDomain: "subdomain.example.com",
+				RewriteDomains: map[string]string{
+					"*":           "https://subdomain.example.com/aaa",
+					"example.com": "http://a.example.com",
+				},
 			},
-			requestURL: "http://subdomain.example.com",
+			requestURL: "http://example.com",
 			want: want{
-				statusCode: http.StatusOK,
+				location:   "http://a.example.com",
+				statusCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name: "basic-alternate-domain-with-path",
+			fields: fields{
+				RewriteDomains: map[string]string{
+					"*":           "https://subdomain.example.com/aaa",
+					"example.com": "http://a.example.com/aaa",
+				},
+			},
+			requestURL: "https://example.com",
+			want: want{
+				location:   "https://a.example.com/aaa",
+				statusCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name: "basic-alternate-domain-with-request-path",
+			fields: fields{
+				RewriteDomains: map[string]string{
+					"*":           "https://subdomain.example.com/aaa",
+					"example.com": "http://a.example.com",
+				},
+			},
+			requestURL: "https://example.com/aaa",
+			want: want{
+				location:   "https://a.example.com/aaa",
+				statusCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name: "rewrite-with-slash-goes-to-root",
+			fields: fields{
+				RewriteDomains: map[string]string{
+					"*": "https://a.example.com/",
+				},
+			},
+			requestURL: "https://example.com/aaa",
+			want: want{
+				location:   "https://a.example.com/",
+				statusCode: http.StatusTemporaryRedirect,
 			},
 		},
 		{
@@ -770,14 +831,16 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			h := &Handler{
 				Error404FilePath:   tt.fields.Error404FilePath,
 				HeaderMap:          tt.fields.HeaderMap,
 				GzipEnabled:        tt.fields.GzipEnabled,
 				HeaderMapEnabled:   tt.fields.HeaderMapEnabled,
 				TemplateMap:        tt.fields.TemplateMap,
-				RewriteDomain:      tt.fields.RewriteDomain,
+				RewriteDomains:     tt.fields.RewriteDomains,
 				TemplateMapEnabled: tt.fields.TemplateMapEnabled,
 				VueJSHistoryMode:   tt.fields.VueJSHistoryMode,
 				ServeFolder:        tt.fields.ServeFolder,
@@ -787,6 +850,7 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to parse requestURL '%v'", tt.requestURL)
 			}
+			t.Log("coming from", u.Host)
 			req.Header.Add("Host", u.Host)
 			rr := httptest.NewRecorder()
 			h.RewriteToDomain(
@@ -794,10 +858,10 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 			).ServeHTTP(rr, req)
 
 			if code := rr.Result().StatusCode; code != tt.want.statusCode {
-				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v", code, tt.want.statusCode)
+				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v statusCode", code, tt.want.statusCode)
 			}
-			if got := rr.Result().Header.Get("Location"); got != tt.want.location && tt.fields.RewriteDomain != "" {
-				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v", got, tt.want.location)
+			if got := rr.Result().Header.Get("Location"); got != tt.want.location && tt.fields.RewriteDomains != nil {
+				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v location", got, tt.want.location)
 			}
 		})
 	}
