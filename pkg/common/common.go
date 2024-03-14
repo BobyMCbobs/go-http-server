@@ -150,12 +150,6 @@ func GetUseInMemoryServePath() (output bool) {
 	return GetEnvOrDefault("APP_USE_IN_MEMORY_SERVE_PATH", "false") == "true"
 }
 
-// GetRewriteDomain ...
-// return the domain to rewrite requests to
-func GetRewriteDomain() (output string) {
-	return GetEnvOrDefault("APP_REWRITE_DOMAIN", "")
-}
-
 // GetHTTPAllowedOrigins ...
 // returns a list of specified allowed origins for configuring CORS
 func GetHTTPAllowedOrigins() (origins []string, err error) {
@@ -292,7 +286,7 @@ type DotfileConfig struct {
 	HeaderMap        map[string][]string `json:"headerMap"`
 	HistoryMode      bool                `json:"historyMode"`
 	RedirectRoutes   map[string]string   `json:"redirectRoutes"`
-	RewriteDomain    string              `json:"rewriteDomain"`
+	RewriteDomains   map[string]string   `json:"rewriteDomains"`
 	TemplateMap      map[string]string   `json:"templateMap"`
 }
 

@@ -18,7 +18,6 @@
 | `APP_REDIRECT_ROUTES_PATH`          | The path to a YAML file containing a map of paths to urls                                                        | `./redirects.yaml`    |
 | `APP_HTTP_ALLOWED_ORIGINS`          | Specifies a CORS rule for allowed origin domains which can refer to this instance of go-http-server in a browser | `*`                   |
 | `APP_USE_IN_MEMORY_SERVE_PATH`      | Copies serve folder contents into a tmp directory to serve from, with the intent of faster reads                 | `false`               |
-| `APP_REWRITE_DOMAIN`                | Rewrite requests to a domain                                                                                     |                       |
 
 # Templating
 
@@ -86,11 +85,45 @@ error404FilePath: string
 headerMap:        map[string][]string
 historyMode:      bool
 redirectRoutes:   map[string]string
-rewriteDomain:    string
+rewriteDomains:   map[string]string
 templateMap:      map[string]string
 ```
 
 for overriding the value set by the server.
+
+Example[1]
+
+```yaml
+error404FilePath: 404.html
+headerMap:
+  X-Very-Cool:
+    - "Yes!"
+historyMode: false
+redirectRoutes:
+  /asdf: http://example.com
+  /page/{.*}: /
+rewriteDomains:
+  '*': http://example.com
+  a.example.com: http://example.com           # NOTE: goes to whichever path
+  b.example.com: http://example.com/          # NOTE: goes to path (root)
+  c.example.com: http://example.com/some-page # NOTE: goes to path
+```
+
+Example[2]
+
+```yaml
+historyMode: true
+redirectRoutes:
+  /asdf: http://example.com
+  /page/{.*}: /
+rewriteDomains:
+  '*': http://example.com
+  a.example.com: http://example.com
+  b.example.com: http://example.com/
+  c.example.com: http://example.com/some-page
+templateMap:
+  greeting: "HELLO!"
+```
 
 ## Fields
 
@@ -100,6 +133,6 @@ The dotfile config supports a smaller and limited subset of the go-http-server s
 **headerMap**: a key+value-array pair to set headers. Values are env-evaluated (e.g: `X-Something-Important: ["Value-Here", "${SOME_ENV}"]`).
 **historyMode**: when set, rewrites all requests with the exception of assets to _index.html_.
 **redirectRoutes**: a key+value pair to direct paths URLs to other URLs. (e.g: `/a: /b`, `/example: https://example.com`).
-**rewriteDomain**: rewrite requests to a domain
+**rewriteDomains**: a key+value pair of domains and wildcard mapping to domain or url to rewrite requests
 **templateMap**: combined with `historyMode`, use Go html templating to replace Go templating expressions in an _index.html_.
 

@@ -51,7 +51,7 @@ type WebServer struct {
 	RedirectRoutes        map[string]string
 	RedirectRoutesEnabled bool
 	RedirectRoutesPath    string
-	RewriteDomain         string
+	RewriteDomains        map[string]string
 	ServeFolder           string
 	TLSCertPath           string
 	TLSConfig             *tls.Config
@@ -94,7 +94,6 @@ func NewWebServer() *WebServer {
 		RealIPHeader:          common.GetAppRealIPHeader(),
 		RedirectRoutesEnabled: common.GetRedirectRoutesEnabled(),
 		RedirectRoutesPath:    common.GetRedirectRoutesPath(),
-		RewriteDomain:         common.GetRewriteDomain(),
 		ServeFolder:           common.GetServeFolder(),
 		TLSCertPath:           common.GetAppHTTPSCrtPath(),
 		TLSKeyPath:            common.GetAppHTTPSKeyPath(),
@@ -125,9 +124,7 @@ func NewWebServer() *WebServer {
 		if w.Error404FilePath == "" {
 			w.Error404FilePath = common.Get404PageFileName()
 		}
-		if w.RewriteDomain == "" {
-			w.RewriteDomain = cfg.RewriteDomain
-		}
+		w.RewriteDomains = cfg.RewriteDomains
 	}
 	router := mux.NewRouter().StrictSlash(false)
 	router.Use(common.Logging)
@@ -304,7 +301,7 @@ func (w *WebServer) newHandlerForWebServer() *handlers.Handler {
 		HeaderMapEnabled:   w.HeaderMapEnabled,
 		TemplateMapEnabled: w.TemplateMapEnabled,
 		Error404FilePath:   w.Error404FilePath,
-		RewriteDomain:      w.RewriteDomain,
+		RewriteDomains:     w.RewriteDomains,
 		GzipEnabled:        w.GzipEnabled,
 		HeaderMap:          w.HeaderMap,
 		TemplateMap:        w.TemplateMap,

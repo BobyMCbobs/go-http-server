@@ -31,7 +31,7 @@ type Handler struct {
 	GzipEnabled        bool
 	HeaderMapEnabled   bool
 	TemplateMap        map[string]string
-	RewriteDomain      string
+	RewriteDomains     map[string]string
 	TemplateMapEnabled bool
 	VueJSHistoryMode   bool
 	ServeFolder        string
@@ -137,15 +137,57 @@ func (h *Handler) ServeStandardRedirect(from string, to string) http.HandlerFunc
 
 func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if host := r.Host; h.RewriteDomain != "" &&
-			host != h.RewriteDomain &&
-			!strings.Contains(r.Host, "localhost") &&
-			!strings.Contains(r.Host, "127.0.0.1") {
-			r.URL.Host = h.RewriteDomain
-			log.Printf("redirecting '%v' -> '%v'\n", host, h.RewriteDomain)
+		drw := ""
+		_, hasWildcardRewrite := h.RewriteDomains["*"]
+		for d, rw := range h.RewriteDomains {
+			if r.Host == d {
+				drw = rw
+				break
+			}
+		}
+		if drw != "" {
+			urw, err := url.Parse(drw)
+			if err != nil {
+				log.Println("error:", err)
+				// TODO handle
+			}
+			if host := r.Host; urw.Host != host &&
+				!strings.Contains(r.Host, "localhost???") &&
+				!strings.Contains(r.Host, "127.0.0.1???") {
+				log.Printf("%+v %+v %+v\n", urw, urw.Scheme, urw.Path)
+				r.URL.Host = urw.Host
+				if urw.Path != "" {
+					r.URL.Path = urw.Path
+				}
+				if urw.RawQuery != "" {
+					r.URL.RawQuery = urw.RawQuery
+				}
+				log.Printf("redirecting '%v' -> '%v'\n", host, drw)
+				http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
+				return
+			}
+		}
+		wrw, err := url.Parse(h.RewriteDomains["*"])
+		if err != nil {
+			log.Println("error:", err)
+			// TODO handle
+		}
+		if host := r.Host; hasWildcardRewrite &&
+			host != wrw.Host &&
+			!(strings.Contains(r.Host, "localhost???") ||
+				strings.Contains(r.Host, "127.0.0.1???")) {
+			r.URL.Host = wrw.Host
+			if wrw.Path != "" {
+				r.URL.Path = wrw.Path
+			}
+			if wrw.RawQuery != "" {
+				r.URL.RawQuery = wrw.RawQuery
+			}
+			log.Printf("redirecting wildcard '%v' -> '%v'\n", host, r.URL.String())
 			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
