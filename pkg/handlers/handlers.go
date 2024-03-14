@@ -152,8 +152,8 @@ func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 				// TODO handle
 			}
 			if host := r.Host; urw.Host != host &&
-				!strings.Contains(r.Host, "localhost???") &&
-				!strings.Contains(r.Host, "127.0.0.1???") {
+				!strings.Contains(r.Host, "localhost") &&
+				!strings.Contains(r.Host, "127.0.0.1") {
 				log.Printf("%+v %+v %+v\n", urw, urw.Scheme, urw.Path)
 				r.URL.Host = urw.Host
 				if urw.Path != "" {
@@ -174,8 +174,8 @@ func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 		}
 		if host := r.Host; hasWildcardRewrite &&
 			host != wrw.Host &&
-			!(strings.Contains(r.Host, "localhost???") ||
-				strings.Contains(r.Host, "127.0.0.1???")) {
+			!(strings.Contains(r.Host, "localhost") ||
+				strings.Contains(r.Host, "127.0.0.1")) {
 			r.URL.Host = wrw.Host
 			if wrw.Path != "" {
 				r.URL.Path = wrw.Path
