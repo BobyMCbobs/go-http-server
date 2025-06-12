@@ -255,7 +255,7 @@ func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
 
 			for _, f := range tt.serveFolder {
 				file := filepath.Join(dir, f.name)
-				if err := os.WriteFile(file, []byte(f.content), 0644); err != nil {
+				if err := os.WriteFile(file, []byte(f.content), 0600); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -511,7 +511,7 @@ func TestHandler_serveHandlerStandard(t *testing.T) {
 
 			for _, f := range tt.serveFolder {
 				file := filepath.Join(dir, f.name)
-				if err := os.WriteFile(file, []byte(f.content), 0644); err != nil {
+				if err := os.WriteFile(file, []byte(f.content), 0600); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -693,7 +693,7 @@ func TestHandler_ServeStandardRedirect(t *testing.T) {
 			}
 			req := httptest.NewRequest("GET", "http://example.com", nil)
 			w := httptest.NewRecorder()
-			h.ServeStandardRedirect(tt.args.from, tt.args.to)(w, req)
+			h.ServeStandardRedirect(tt.args.from, tt.args.to).ServeHTTP(w, req)
 
 			// if tt.error != ""
 			if code := w.Result().StatusCode; code != tt.want.statusCode {

@@ -172,10 +172,11 @@ func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 			log.Println("error:", err)
 			// TODO handle
 		}
+		isLocal := strings.Contains(r.Host, "localhost") ||
+			strings.Contains(r.Host, "127.0.0.1")
 		if host := r.Host; hasWildcardRewrite &&
 			host != wrw.Host &&
-			!(strings.Contains(r.Host, "localhost") ||
-				strings.Contains(r.Host, "127.0.0.1")) {
+			!isLocal {
 			r.URL.Host = wrw.Host
 			if wrw.Path != "" {
 				r.URL.Path = wrw.Path

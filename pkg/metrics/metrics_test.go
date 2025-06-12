@@ -1,11 +1,17 @@
 package metrics
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"testing"
 	"time"
 )
+
+func newRandPort(input int64) int64 {
+	output, _ := rand.Int(rand.Reader, big.NewInt(input))
+	return output.Int64()
+}
 
 func TestMetrics_Handle(t *testing.T) {
 	type fields struct {
@@ -21,14 +27,14 @@ func TestMetrics_Handle(t *testing.T) {
 			name: "basic",
 			fields: fields{
 				Enabled: true,
-				Port:    fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
+				Port:    fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
 			},
 		},
 		{
 			name: "not enabled",
 			fields: fields{
 				Enabled: false,
-				Port:    fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
+				Port:    fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
 			},
 		},
 	}

@@ -1,16 +1,18 @@
 package httpserver
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	_ "embed"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"os"
 	"path"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"gitlab.com/BobyMCbobs/go-http-server/pkg/handlers"
 	"gitlab.com/BobyMCbobs/go-http-server/pkg/metrics"
@@ -186,7 +188,7 @@ error404FilePath: 404-lol.html
 				}
 			}()
 			if tt.dotfileContent != "" {
-				if err := os.WriteFile(path.Join(dir, ".ghs.yaml"), []byte(tt.dotfileContent), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, ".ghs.yaml"), []byte(tt.dotfileContent), 0600); err != nil {
 					t.Fatalf("error: failed to write .ghs.yaml: %v", err)
 				}
 			}
@@ -630,13 +632,13 @@ func TestWebServer_LoadTLS(t *testing.T) {
 			publicKeyPath := path.Join(dir, "tls.cert")
 			privateKeyPath := path.Join(dir, "tls.key")
 			if tt.publicKey != "" {
-				if err := os.WriteFile(publicKeyPath, []byte(tt.publicKey), 0644); err != nil {
+				if err := os.WriteFile(publicKeyPath, []byte(tt.publicKey), 0600); err != nil {
 					t.Fatal(err)
 				}
 				w.TLSCertPath = publicKeyPath
 			}
 			if tt.privateKey != "" {
-				if err := os.WriteFile(privateKeyPath, []byte(tt.privateKey), 0644); err != nil {
+				if err := os.WriteFile(privateKeyPath, []byte(tt.privateKey), 0600); err != nil {
 					t.Fatal(err)
 				}
 				w.TLSKeyPath = privateKeyPath
@@ -799,7 +801,7 @@ Something: "${THINGY}"
 			w.ServeFolder = dir
 			if tt.templateFileContent != "" {
 				templatesFilePath := path.Join(dir, "templates.yaml")
-				if err := os.WriteFile(templatesFilePath, []byte(tt.templateFileContent), 0644); err != nil {
+				if err := os.WriteFile(templatesFilePath, []byte(tt.templateFileContent), 0600); err != nil {
 					t.Fatalf("failed to write headers file: %v", err)
 				}
 				w.TemplateMapPath = templatesFilePath
@@ -1110,7 +1112,7 @@ Something:
 			w.ServeFolder = dir
 			if tt.headerFileContent != "" {
 				headersFilePath := path.Join(dir, "headers.yaml")
-				if err := os.WriteFile(headersFilePath, []byte(tt.headerFileContent), 0644); err != nil {
+				if err := os.WriteFile(headersFilePath, []byte(tt.headerFileContent), 0600); err != nil {
 					t.Fatalf("failed to write headers file: %v", err)
 				}
 				w.HeaderMapPath = headersFilePath
@@ -1588,6 +1590,11 @@ func TestWebServer_NewMetricsFromWebServer(t *testing.T) {
 	}
 }
 
+func newRandPort(input int64) int64 {
+	output, _ := rand.Int(rand.Reader, big.NewInt(input))
+	return output.Int64()
+}
+
 func TestWebServer_Listen(t *testing.T) {
 	type fields struct {
 		AppPort               string
@@ -1630,17 +1637,17 @@ func TestWebServer_Listen(t *testing.T) {
 		{
 			name: "basic",
 			fields: fields{
-				AppPort:     fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
-				MetricsPort: fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
+				AppPort:     fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
+				MetricsPort: fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
 			},
 		},
 		{
 			name: "tls",
 			fields: fields{
-				AppPort:          fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
-				HTTPSPort:        fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
+				AppPort:          fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
+				HTTPSPort:        fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
 				HTTPSPortEnabled: true,
-				MetricsPort:      fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000),
+				MetricsPort:      fmt.Sprintf(":%v", newRandPort(65000-50000)+50000),
 			},
 		},
 	}
@@ -1686,16 +1693,18 @@ func TestWebServer_Listen(t *testing.T) {
 			}
 			defer os.RemoveAll(dir)
 			w.server = &http.Server{
-				Addr: w.AppPort,
+				Addr:         w.AppPort,
+				WriteTimeout: 15 * time.Second,
+				ReadTimeout:  15 * time.Second,
 			}
 			if w.HTTPSPortEnabled {
 				publicKeyPath := path.Join(dir, "tls.cert")
 				privateKeyPath := path.Join(dir, "tls.key")
-				if err := os.WriteFile(publicKeyPath, []byte(tlsPublic), 0644); err != nil {
+				if err := os.WriteFile(publicKeyPath, []byte(tlsPublic), 0600); err != nil {
 					t.Fatal(err)
 				}
 				w.TLSCertPath = publicKeyPath
-				if err := os.WriteFile(privateKeyPath, []byte(tlsPrivate), 0644); err != nil {
+				if err := os.WriteFile(privateKeyPath, []byte(tlsPrivate), 0600); err != nil {
 					t.Fatal(err)
 				}
 				w.TLSKeyPath = privateKeyPath
@@ -1703,8 +1712,10 @@ func TestWebServer_Listen(t *testing.T) {
 					t.Fatalf("error: failed to load TLS: %v\n", err)
 				}
 				w.serverTLS = &http.Server{
-					Addr:      w.HTTPSPort,
-					TLSConfig: w.TLSConfig,
+					Addr:         w.HTTPSPort,
+					TLSConfig:    w.TLSConfig,
+					WriteTimeout: 15 * time.Second,
+					ReadTimeout:  15 * time.Second,
 				}
 			}
 			w.newHandlerForWebServer()
