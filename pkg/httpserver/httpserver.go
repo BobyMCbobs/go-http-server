@@ -230,7 +230,7 @@ func (w *WebServer) SetExtraMiddleware(m ...func(http.Handler) http.Handler) *We
 
 // LoadTLS loads in the TLS certs
 func (w *WebServer) LoadTLS() (*WebServer, error) {
-	w.TLSConfig = &tls.Config{}
+	w.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS13}
 	w.TLSConfig.Certificates = make([]tls.Certificate, 1)
 	loadedCert, err := tls.LoadX509KeyPair(w.TLSCertPath, w.TLSKeyPath)
 	if err != nil {

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
+	"math/big"
 	"net"
 	"net/http"
 	"os"
@@ -41,7 +42,8 @@ func pointer[V any](input V) *V {
 func randStringRunes(set []rune, n int) string {
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = set[rand.Intn(len(set))]
+		index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(set))))
+		b[i] = set[index.Int64()]
 	}
 	return string(b)
 }
@@ -792,12 +794,13 @@ redirectRoutes:
 				if err := os.Mkdir(path.Join(dir, d), 0777); errors.Is(err, os.ErrNotExist) {
 					t.Fatalf("failed to create dir: %v", err)
 				}
-				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0600); err != nil {
 					t.Fatalf("failed to write file: %v", err)
 				}
 			}
 			if tt.env["APP_PORT"] == "" {
-				tt.env["APP_PORT"] = fmt.Sprintf(":%v", rand.Intn(65000-50000)+50000)
+				index, _ := rand.Int(rand.Reader, big.NewInt(int64(65000-50000)))
+				tt.env["APP_PORT"] = fmt.Sprintf(":%v", index.Int64()+50000)
 			}
 			t.Log("appbuildmode", common.AppBuildMode)
 			if tt.productionBuild {
@@ -830,7 +833,9 @@ redirectRoutes:
 			for {
 				conn, err := net.DialTimeout("tcp", "localhost"+tt.env["APP_PORT"], time.Millisecond*500)
 				if err == nil {
-					conn.Close()
+					if err := conn.Close(); err != nil {
+						t.Fatalf("failed to dial TCP: %v", err)
+					}
 					break
 				}
 				time.Sleep(1 * time.Second)

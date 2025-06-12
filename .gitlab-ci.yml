@@ -11,9 +11,8 @@ include:
 variables:
   APP_BUILD_VERSION: 0.0.0
   APP_BUILD_MODE: development
-  IMAGE_GOLANG_ALPINE: docker.io/golang:1.22.5-alpine3.19@sha256:0642d4f809abf039440540de1f0e83502401686e3946ed8e7398a1d94648aa6d
-  IMAGE_PYTHON: docker.io/python:3.8-buster@sha256:04c3f641c2254c229fd2f704c5199ff4bea57d26c1c29008ae3a4afddde98709
-  IMAGE_GOLANGCI_LINT: docker.io/golangci/golangci-lint:v1.59.1-alpine@sha256:2a5293b5d25319a515db44f00c7e72466a78488106fbb995730580ef25fb8b20
+  IMAGE_GOLANG_ALPINE: docker.io/golang:1.24.4-alpine3.21@sha256:56a23791af0f77c87b049230ead03bd8c3ad41683415ea4595e84ce7eada121a
+  IMAGE_PYTHON: docker.io/python:3.13-alpine3.22@sha256:b4d299311845147e7e47c970566906caf8378a1f04e5d3de65b5f2e834f8e3bf
   COSIGN_YES: "true"
 
 .image-set-build-env: &image-set-build-env |
@@ -31,6 +30,9 @@ variables:
 
 .setup-testing-repo: &setup-testing-repo |
   echo 'https://dl-cdn.alpinelinux.org/alpine/edge/testing' | tee -a /etc/apk/repositories
+
+.setup-community-repo: &setup-community-repo |
+  echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' | tee -a /etc/apk/repositories
 
 build-container:
   only:
@@ -140,8 +142,7 @@ golangci-lint:
     name: $IMAGE_GOLANG_ALPINE
     entrypoint: [""]
   before_script:
-    - |
-      echo 'http://dl-cdn.alpinelinux.org/alpine/v3.19/community' >> /etc/apk/repositories
+    - *setup-community-repo
     - apk add --no-cache git golangci-lint
   script:
     - ./hack/verify-golangci-lint.sh

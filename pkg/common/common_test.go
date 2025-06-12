@@ -982,7 +982,7 @@ SomeKey: Hello!
 			}
 			defer os.RemoveAll(dir)
 			for f, c := range tt.files {
-				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0600); err != nil {
 					t.Fatalf("failed to write file: %v", err)
 				}
 			}
@@ -1106,7 +1106,7 @@ SomeKey:
 			}
 			defer os.RemoveAll(dir)
 			for f, c := range tt.files {
-				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0600); err != nil {
 					t.Fatalf("failed to write file: %v", err)
 				}
 			}
@@ -1328,7 +1328,7 @@ templateMap:
 			}
 			defer os.RemoveAll(dir)
 			for f, c := range tt.files {
-				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0600); err != nil {
 					t.Fatalf("failed to write file: %v", err)
 				}
 			}
@@ -1397,7 +1397,7 @@ func TestLoadRedirectRoutesConfig(t *testing.T) {
 			}
 			defer os.RemoveAll(dir)
 			for f, c := range tt.files {
-				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0644); err != nil {
+				if err := os.WriteFile(path.Join(dir, f), []byte(c), 0600); err != nil {
 					t.Fatalf("failed to write file: %v", err)
 				}
 			}
