@@ -1,13 +1,17 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
+
+	"gitlab.com/BobyMCbobs/go-http-server/pkg/common"
 )
 
 func TestHandler_serveHandlerVuejsHistoryMode(t *testing.T) {
@@ -862,6 +866,273 @@ func TestHandler_RewriteToDomain(t *testing.T) {
 			}
 			if got := rr.Result().Header.Get("Location"); got != tt.want.location && tt.fields.RewriteDomains != nil {
 				t.Errorf("Handler.ServeStandardRedirect() = %v, want %v location", got, tt.want.location)
+			}
+		})
+	}
+}
+
+func TestHandler_allowedPasswordHashEnvLookupFunction(t *testing.T) {
+	type fields struct {
+		Error404FilePath   string
+		HeaderMap          map[string][]string
+		GzipEnabled        bool
+		HeaderMapEnabled   bool
+		TemplateMap        map[string]string
+		RewriteDomains     map[string]string
+		ProtectedRoutes    map[string]string
+		TemplateMapEnabled bool
+		VueJSHistoryMode   bool
+		ServeFolder        string
+	}
+	type args struct {
+		input string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   string
+		env    map[string]string
+	}{
+		{
+			name: "basic",
+			env: map[string]string{
+				"GHS_SECRET_TEST": "hello",
+			},
+			args: args{
+				input: "GHS_SECRET_TEST",
+			},
+			want: "hello",
+		},
+		{
+			name: "basic",
+			env: map[string]string{
+				"NOT_GHS_SECRET_TEST": "hello",
+			},
+			args: args{
+				input: "NOT_GHS_SECRET_TEST",
+			},
+			want: "$NOT_GHS_SECRET_TEST",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				Error404FilePath:   tt.fields.Error404FilePath,
+				HeaderMap:          tt.fields.HeaderMap,
+				GzipEnabled:        tt.fields.GzipEnabled,
+				HeaderMapEnabled:   tt.fields.HeaderMapEnabled,
+				TemplateMap:        tt.fields.TemplateMap,
+				RewriteDomains:     tt.fields.RewriteDomains,
+				ProtectedRoutes:    tt.fields.ProtectedRoutes,
+				TemplateMapEnabled: tt.fields.TemplateMapEnabled,
+				VueJSHistoryMode:   tt.fields.VueJSHistoryMode,
+				ServeFolder:        tt.fields.ServeFolder,
+			}
+			for k, v := range tt.env {
+				if err := os.Setenv(k, v); err != nil {
+					t.Errorf("Failed to set env: %v", err)
+				}
+			}
+			if got := h.allowedPasswordHashEnvLookupFunction(tt.args.input); got != tt.want {
+				t.Errorf("Handler.allowedPasswordHashEnvLookupFunction() = %v, want %v", got, tt.want)
+			}
+			for k := range tt.env {
+				if err := os.Unsetenv(k); err != nil {
+					t.Errorf("Failed to set env: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestHandler_ServeProtectedRoutes(t *testing.T) {
+	type fields struct {
+		Error401FilePath   string
+		Error404FilePath   string
+		HeaderMap          map[string][]string
+		GzipEnabled        bool
+		HeaderMapEnabled   bool
+		TemplateMap        map[string]string
+		RewriteDomains     map[string]string
+		ProtectedRoutes    map[string]string
+		TemplateMapEnabled bool
+		VueJSHistoryMode   bool
+		ServeFolder        string
+	}
+	type testFields struct {
+		name           string
+		username       string
+		password       string
+		testPath       string
+		fields         fields
+		wantStatusCode int
+		wantBody       string
+	}
+	tests := []testFields{
+		{
+			name:     "basic",
+			username: "",
+			password: "hello",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:     "basic unauthorized",
+			username: "",
+			password: "hello1",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "basic unauthorized no creds",
+			username: "",
+			password: "",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "basic with username",
+			username: "root",
+			password: "hello",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": fmt.Sprintf("root:%v", common.HashPassword("hello")),
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:     "basic with username unauthorized username",
+			username: "root1",
+			password: "hello",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": fmt.Sprintf("root:%v", common.HashPassword("hello")),
+				},
+			},
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "basic with username unauthorized password",
+			username: "root",
+			password: "hello1",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": fmt.Sprintf("root:%v", common.HashPassword("hello")),
+				},
+			},
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		{
+			name:     "no auth outside of protected route",
+			username: "",
+			password: "",
+			testPath: "/",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:     "auth inside of protected route",
+			username: "",
+			password: "hello",
+			testPath: "/test/a",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:     "no auth inside of protected route",
+			username: "",
+			password: "",
+			testPath: "/test/a",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": common.HashPassword("hello"),
+				},
+			},
+			wantStatusCode: http.StatusUnauthorized,
+		},
+		func() testFields {
+			f := testFields{
+				name:     "basic no auth with custom page",
+				username: "",
+				password: "",
+				testPath: "/test",
+				fields: fields{
+					Error401FilePath: "401.html",
+					ProtectedRoutes: map[string]string{
+						"/test": common.HashPassword("hello"),
+					},
+					ServeFolder: os.TempDir(),
+				},
+				wantStatusCode: http.StatusUnauthorized,
+				wantBody:       "CUSTOM PAGE",
+			}
+			_ = os.WriteFile(path.Join(f.fields.ServeFolder, "401.html"), []byte("CUSTOM PAGE"), 0600)
+			return f
+		}(),
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &Handler{
+				Error401FilePath:   tt.fields.Error401FilePath,
+				Error404FilePath:   tt.fields.Error404FilePath,
+				HeaderMap:          tt.fields.HeaderMap,
+				GzipEnabled:        tt.fields.GzipEnabled,
+				HeaderMapEnabled:   tt.fields.HeaderMapEnabled,
+				TemplateMap:        tt.fields.TemplateMap,
+				RewriteDomains:     tt.fields.RewriteDomains,
+				ProtectedRoutes:    tt.fields.ProtectedRoutes,
+				TemplateMapEnabled: tt.fields.TemplateMapEnabled,
+				VueJSHistoryMode:   tt.fields.VueJSHistoryMode,
+				ServeFolder:        tt.fields.ServeFolder,
+			}
+			req := httptest.NewRequest("GET", tt.testPath, nil)
+			if tt.username != "" || tt.password != "" {
+				req.SetBasicAuth(tt.username, tt.password)
+			}
+			rr := httptest.NewRecorder()
+			h.ServeProtectedRoutes(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			).ServeHTTP(rr, req)
+
+			if code := rr.Result().StatusCode; code != tt.wantStatusCode {
+				t.Errorf("Handler.ServeProtectedRoutes() = %v, want %v statusCode", code, tt.wantStatusCode)
+			}
+			if tt.wantBody != "" {
+				b, err := io.ReadAll(rr.Result().Body)
+				if err != nil {
+					t.Errorf("Error reading body: %v", err)
+				}
+				if tt.wantBody != string(b) {
+					t.Errorf("Handler.ServeProtectedRoutes() = %v, want %v body", string(b), tt.wantBody)
+				}
 			}
 		})
 	}

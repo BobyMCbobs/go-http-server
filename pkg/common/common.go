@@ -5,6 +5,8 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/fs"
@@ -130,6 +132,12 @@ func GetHeaderMapPath() (output string) {
 // return the name of the file to serve for 404 for standard directory serving
 func Get404PageFileName() (output string) {
 	return GetEnvOrDefault("APP_404_PAGE_FILE_NAME", "404.html")
+}
+
+// Get401PageFileName ...
+// return the name of the file to serve for 401 for standard directory serving
+func Get401PageFileName() (output string) {
+	return GetEnvOrDefault("APP_401_PAGE_FILE_NAME", "401.html")
 }
 
 // GetRedirectRoutesEnabled ...
@@ -282,9 +290,11 @@ func Logging(next http.Handler) http.Handler {
 // DotfileConfig ...
 // dotfiles found in the web root
 type DotfileConfig struct {
+	Error401FilePath string              `json:"error401FilePath"`
 	Error404FilePath string              `json:"error404FilePath"`
 	HeaderMap        map[string][]string `json:"headerMap"`
 	HistoryMode      bool                `json:"historyMode"`
+	ProtectedRoutes  map[string]string   `json:"protectedRoutes"`
 	RedirectRoutes   map[string]string   `json:"redirectRoutes"`
 	RewriteDomains   map[string]string   `json:"rewriteDomains"`
 	TemplateMap      map[string]string   `json:"templateMap"`
@@ -368,4 +378,17 @@ func CopyDir(src, dst string) error {
 		}
 		return nil
 	})
+}
+
+func HashPassword(input string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(input))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func FileExists(input string) bool {
+	if _, err := os.Stat(input); err == nil {
+		return true
+	}
+	return false
 }
