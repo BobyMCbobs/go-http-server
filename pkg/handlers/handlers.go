@@ -228,7 +228,11 @@ func (h *Handler) ServeProtectedRoutes(next http.Handler) http.Handler {
 		if strings.Contains(credHashes, ":") {
 			parts := strings.Split(credHashes, ":")
 			expectedUsername = parts[0]
-			expectedPasswordHash = parts[1]
+			if len(parts) > 1 {
+				expectedPasswordHash = parts[1]
+			} else {
+				expectedPasswordHash = ""
+			}
 		}
 		username, password, ok := r.BasicAuth()
 		if ok {
@@ -236,8 +240,11 @@ func (h *Handler) ServeProtectedRoutes(next http.Handler) http.Handler {
 			if expectedUsername != "" {
 				matchUsername = subtle.ConstantTimeCompare([]byte(username), []byte(expectedUsername)) == 1
 			}
-			passwordHash := common.HashPassword(password)
-			matchPassword := subtle.ConstantTimeCompare([]byte(passwordHash), []byte(expectedPasswordHash)) == 1
+			matchPassword := true
+			if expectedPasswordHash != "" {
+				passwordHash := common.HashPassword(password)
+				matchPassword = subtle.ConstantTimeCompare([]byte(passwordHash), []byte(expectedPasswordHash)) == 1
+			}
 			if matchUsername && matchPassword {
 				next.ServeHTTP(w, r)
 				return

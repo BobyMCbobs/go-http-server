@@ -1097,6 +1097,31 @@ func TestHandler_ServeProtectedRoutes(t *testing.T) {
 			_ = os.WriteFile(path.Join(f.fields.ServeFolder, "401.html"), []byte("CUSTOM PAGE"), 0600)
 			return f
 		}(),
+		{
+			name:     "basic only username",
+			username: "root",
+			password: "",
+			testPath: "/test",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test": "root:",
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:     "basic with multiple routes",
+			username: "",
+			password: "hello1",
+			testPath: "/test1",
+			fields: fields{
+				ProtectedRoutes: map[string]string{
+					"/test/":  common.HashPassword("hello"),
+					"/test1/": common.HashPassword("hello1"),
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
