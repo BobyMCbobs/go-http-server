@@ -33,6 +33,7 @@ type WebServer struct {
 	AppPort               string
 	HTTPAllowedOrigins    []string
 	Error404FilePath      string
+	Error401FilePath      string
 	ExtraHandlers         []*ExtraHandler
 	ExtraMiddleware       []func(http.Handler) http.Handler
 	GzipEnabled           bool
@@ -47,6 +48,7 @@ type WebServer struct {
 	UseInMemoryServePath  bool
 	MetricsPort           string
 	MetricsPortEnabled    bool
+	ProtectedRoutes       map[string]string
 	RealIPHeader          string
 	RedirectRoutes        map[string]string
 	RedirectRoutesEnabled bool
@@ -79,6 +81,7 @@ func NewWebServer() *WebServer {
 	w := &WebServer{
 		AppPort:               common.GetAppPort(),
 		Error404FilePath:      common.Get404PageFileName(),
+		Error401FilePath:      common.Get401PageFileName(),
 		GzipEnabled:           common.GetEnableGZIP(),
 		HTTPPort:              common.GetAppPort(),
 		HTTPSPort:             common.GetAppHTTPSPort(),
@@ -120,7 +123,15 @@ func NewWebServer() *WebServer {
 		if w.HeaderMap != nil {
 			w.HeaderMapEnabled = true
 		}
-		w.Error404FilePath = cfg.Error404FilePath
+		if cfg.ProtectedRoutes != nil {
+			w.ProtectedRoutes = cfg.ProtectedRoutes
+		}
+		if cfg.Error404FilePath != "" {
+			w.Error404FilePath = cfg.Error404FilePath
+		}
+		if cfg.Error401FilePath != "" {
+			w.Error401FilePath = common.Get401PageFileName()
+		}
 		if w.Error404FilePath == "" {
 			w.Error404FilePath = common.Get404PageFileName()
 		}
@@ -160,6 +171,9 @@ func NewWebServer() *WebServer {
 		router.HandleFunc(h.Path, h.HandlerFunc).Methods(h.HTTPMethods...)
 	}
 	w.handler = w.newHandlerForWebServer()
+	if w.ProtectedRoutes != nil {
+		router.Use(w.handler.ServeProtectedRoutes)
+	}
 
 	servingFolderPath := w.ServeFolder
 	if w.UseInMemoryServePath {
@@ -300,7 +314,9 @@ func (w *WebServer) newHandlerForWebServer() *handlers.Handler {
 		VueJSHistoryMode:   w.VueJSHistoryMode,
 		HeaderMapEnabled:   w.HeaderMapEnabled,
 		TemplateMapEnabled: w.TemplateMapEnabled,
+		Error401FilePath:   w.Error401FilePath,
 		Error404FilePath:   w.Error404FilePath,
+		ProtectedRoutes:    w.ProtectedRoutes,
 		RewriteDomains:     w.RewriteDomains,
 		GzipEnabled:        w.GzipEnabled,
 		HeaderMap:          w.HeaderMap,

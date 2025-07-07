@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"fmt"
 	"html/template"
 	"log"
@@ -26,12 +27,14 @@ var (
 
 // Handler holds the information needed to create handlers
 type Handler struct {
+	Error401FilePath   string
 	Error404FilePath   string
 	HeaderMap          map[string][]string
 	GzipEnabled        bool
 	HeaderMapEnabled   bool
 	TemplateMap        map[string]string
 	RewriteDomains     map[string]string
+	ProtectedRoutes    map[string]string
 	TemplateMapEnabled bool
 	VueJSHistoryMode   bool
 	ServeFolder        string
@@ -190,5 +193,62 @@ func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func (h *Handler) allowedPasswordHashEnvLookupFunction(input string) string {
+	if value, ok := os.LookupEnv(input); ok && strings.HasPrefix(input, "GHS_SECRET_") {
+		return value
+	}
+	return fmt.Sprintf("$%s", input)
+}
+
+// ServeProtectedRoutes uses basic auth for specified routes.
+// this is not a good security mechanism but just for basic use.
+func (h *Handler) ServeProtectedRoutes(next http.Handler) http.Handler {
+	for path, passwordHash := range h.ProtectedRoutes {
+		h.ProtectedRoutes[path] = os.Expand(passwordHash, h.allowedPasswordHashEnvLookupFunction)
+	}
+	page401Path := path.Join(h.ServeFolder, h.Error401FilePath)
+	page401Exists := common.FileExists(page401Path)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		credHashes := ""
+		for path, passwordHash := range h.ProtectedRoutes {
+			if strings.HasPrefix(r.URL.Path, path) {
+				credHashes = passwordHash
+				break
+			}
+		}
+		if credHashes == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		expectedPasswordHash := credHashes
+		expectedUsername := ""
+		if strings.Contains(credHashes, ":") {
+			parts := strings.Split(credHashes, ":")
+			expectedUsername = parts[0]
+			expectedPasswordHash = parts[1]
+		}
+		username, password, ok := r.BasicAuth()
+		if ok {
+			matchUsername := true
+			if expectedUsername != "" {
+				matchUsername = subtle.ConstantTimeCompare([]byte(username), []byte(expectedUsername)) == 1
+			}
+			passwordHash := common.HashPassword(password)
+			matchPassword := subtle.ConstantTimeCompare([]byte(passwordHash), []byte(expectedPasswordHash)) == 1
+			if matchUsername && matchPassword {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+		if page401Exists {
+			w.WriteHeader(http.StatusUnauthorized)
+			http.ServeFile(w, r, page401Path)
+			return
+		}
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	})
 }
