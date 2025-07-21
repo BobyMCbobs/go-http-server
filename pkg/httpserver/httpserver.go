@@ -172,6 +172,10 @@ func NewWebServer() *WebServer {
 	}
 	w.handler = w.newHandlerForWebServer()
 	if w.ProtectedRoutes != nil {
+		w.handler.ProtectedRoutes = map[string]string{}
+		for path, passwordHash := range w.ProtectedRoutes {
+			w.handler.ProtectedRoutes[path] = os.Expand(passwordHash, common.AllowedGHSSecretHashEnvLookupFunction)
+		}
 		router.Use(w.handler.ServeProtectedRoutes)
 	}
 
