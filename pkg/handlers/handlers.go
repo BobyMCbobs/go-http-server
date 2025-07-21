@@ -196,19 +196,9 @@ func (h *Handler) RewriteToDomain(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handler) allowedPasswordHashEnvLookupFunction(input string) string {
-	if value, ok := os.LookupEnv(input); ok && strings.HasPrefix(input, "GHS_SECRET_") {
-		return value
-	}
-	return fmt.Sprintf("$%s", input)
-}
-
 // ServeProtectedRoutes uses basic auth for specified routes.
 // this is not a good security mechanism but just for basic use.
 func (h *Handler) ServeProtectedRoutes(next http.Handler) http.Handler {
-	for path, passwordHash := range h.ProtectedRoutes {
-		h.ProtectedRoutes[path] = os.Expand(passwordHash, h.allowedPasswordHashEnvLookupFunction)
-	}
 	page401Path := path.Join(h.ServeFolder, h.Error401FilePath)
 	page401Exists := common.FileExists(page401Path)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

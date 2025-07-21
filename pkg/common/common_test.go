@@ -1412,3 +1412,63 @@ func TestLoadRedirectRoutesConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_AllowedGHSSecretHashEnvLookupFunction(t *testing.T) {
+	type args struct {
+		input string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+		env  map[string]string
+	}{
+		{
+			name: "basic",
+			env: map[string]string{
+				"GHS_SECRET_TEST": "hello",
+			},
+			args: args{
+				input: "GHS_SECRET_TEST",
+			},
+			want: "hello",
+		},
+		{
+			name: "basic",
+			env: map[string]string{
+				"HOME": "/home/ghs",
+			},
+			args: args{
+				input: "HOME",
+			},
+			want: "$HOME",
+		},
+		{
+			name: "basic",
+			env: map[string]string{
+				"NOT_GHS_SECRET_TEST": "hello",
+			},
+			args: args{
+				input: "NOT_GHS_SECRET_TEST",
+			},
+			want: "$NOT_GHS_SECRET_TEST",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.env {
+				if err := os.Setenv(k, v); err != nil {
+					t.Errorf("Failed to set env: %v", err)
+				}
+			}
+			if got := AllowedGHSSecretHashEnvLookupFunction(tt.args.input); got != tt.want {
+				t.Errorf("AllowedGHSSecretHashEnvLookupFunction() = %v, want %v", got, tt.want)
+			}
+			for k := range tt.env {
+				if err := os.Unsetenv(k); err != nil {
+					t.Errorf("Failed to set env: %v", err)
+				}
+			}
+		})
+	}
+}

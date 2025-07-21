@@ -392,3 +392,10 @@ func FileExists(input string) bool {
 	}
 	return false
 }
+
+func AllowedGHSSecretHashEnvLookupFunction(input string) string {
+	if value, ok := os.LookupEnv(input); ok && strings.HasPrefix(input, "GHS_SECRET_") {
+		return value
+	}
+	return fmt.Sprintf("$%s", input)
+}
